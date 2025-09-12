@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased][Unreleased]
 
+---
+
+## [1.1.0][1.1.0] - 2025-09-12
+
 ### Added
 
 - **Intelligent Distance Normalization**: Revolutionary postprocessing algorithm for lap-relative distance calculation
@@ -177,5 +181,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Outdated dependencies**: Cleaned up non-AI training related model references (XGBoost, TCN, YOLOv8 in generic context)
 - **Incompatible roadmap items**: Removed phases not aligned with autonomous driving objectives
 
-[Unreleased]: https://github.com/VforVitorio/F1_AC_Digital_Twin/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/VforVitorio/F1_AC_Digital_Twin/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.1.0
 [1.0.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.0.0
