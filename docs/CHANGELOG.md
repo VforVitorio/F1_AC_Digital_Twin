@@ -9,6 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.0][1.2.0] - 2025-09-13
+
+### Added
+
+- **Real-time AC Circuit Visualizer**: Professional animated telemetry visualization system
+  - Complete track position visualization with automatic layout optimization
+  - Real-time car movement animation with trail rendering
+  - Multi-panel telemetry display (speed, throttle/brake, gear/RPM)
+  - Interactive info panel with live telemetry data updates
+  - Smart track rotation algorithm for optimal horizontal display
+  - Comprehensive matplotlib-based animation with 50ms frame intervals
+- **Interactive Circuit Telemetry Analysis Notebook**: Advanced Plotly-based circuit analysis
+  - Circuit-agnostic analysis compatible with any Assetto Corsa track
+  - Six-panel interactive visualization (speed, steering, throttle/brake, gear, RPM, surface grip)
+  - Automatic coordinate optimization with rotation and centering algorithms
+  - Color-coded track mapping with hover tooltips for precise data analysis
+  - Professional subplot layout with synchronized axis scaling
+  - Complete telemetry variable preparation pipeline for AI training data
+
+### Enhanced
+
+- **Comprehensive Code Documentation**: Enterprise-level docstring implementation
+  - Complete English documentation for all AC Circuit Visualizer functions (17 methods)
+  - Detailed parameter descriptions with types and return values for all notebook functions
+  - Professional docstring format following Python PEP 257 standards
+  - Comprehensive markdown cell explanations following established patterns
+  - Clear functional descriptions without excessive verbosity
+  - Consistent documentation style across Python scripts and Jupyter notebooks
+
+### Improved
+
+- **Code Organization and Maintainability**: Professional code structure implementation
+  - Modular function design with clear separation of concerns
+  - Consistent naming conventions and code formatting
+  - Comprehensive error handling and edge case management
+  - Professional visualization pipeline with reusable components
+  - Optimized coordinate transformation algorithms for performance
+
+---
+
 ## [1.1.0][1.1.0] - 2025-09-12
 
 ### Added
@@ -181,6 +221,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Outdated dependencies**: Cleaned up non-AI training related model references (XGBoost, TCN, YOLOv8 in generic context)
 - **Incompatible roadmap items**: Removed phases not aligned with autonomous driving objectives
 
-[Unreleased]: https://github.com/VforVitorio/F1_AC_Digital_Twin/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/VforVitorio/F1_AC_Digital_Twin/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.2.0
 [1.1.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.1.0
 [1.0.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.0.0
