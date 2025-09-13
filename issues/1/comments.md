@@ -1,0 +1,1 @@
+The distance normalization issue has been resolved in commit 7b6093c.
