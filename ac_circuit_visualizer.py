@@ -5,7 +5,7 @@ import matplotlib.animation as animation
 from matplotlib.patches import Circle
 from matplotlib.collections import LineCollection
 import warnings
-
+from matplotlib.lines import Line2D
 warnings.filterwarnings('ignore')
 
 
@@ -56,6 +56,11 @@ class ACTelemetryVisualizer:
         """
         Create color arrays for track segments based on sector information.
 
+        Notes:
+            The telemetry `CurrentSectorIndex` is encoded as 0,1,2 in the CSV,
+            while the internal `sector_colors_map` uses keys 1,2,3 (for display).
+            We therefore map telemetry values -> display sector by adding 1.
+
         Returns:
             list: Colors for each track segment based on current sector
         """
@@ -64,8 +69,7 @@ class ACTelemetryVisualizer:
         print(f"Debug: Unique sectors in data: {sorted(sectors_found)}")
 
         for sector in self.df['CurrentSectorIndex']:
-            # The telemetry uses 0,1,2 but our mapping keys are 1,2,3.
-            # Map telemetry value -> display sector by adding 1.
+            # Map telemetry sector (0..2) -> display sector (1..3)
             display_sector = int(sector) + 1
             color = self.sector_colors_map.get(display_sector, 'gray')
             sector_colors.append(color)
@@ -175,22 +179,31 @@ class ACTelemetryVisualizer:
         """
         Create matplotlib figure with 2x2 subplot layout for telemetry visualization.
 
-        Sets up the main figure window with proper spacing and adds title information
-        and info text area for real-time telemetry display.
-
         Returns:
-            tuple: (fig, axes, info_text) - Figure object, axes array, and info text object
+            tuple: (fig, axes, info_text, sector_times_box)
         """
         fig, axes = plt.subplots(2, 2, figsize=(16, 13))
         fig.subplots_adjust(top=0.65, bottom=0.12, hspace=0.35, wspace=0.3)
 
         self._add_title_and_info(fig)
 
-        # Create info text outside the track plot
-        info_text = fig.text(0.5, 0.82, '', fontsize=12, verticalalignment='top', horizontalalignment='center',
-                             bbox=dict(boxstyle='round,pad=0.8', facecolor='lightblue', alpha=0.9))
+        # Central info text (existing blue box) - top center
+        info_text = fig.text(
+            0.22, 0.88, '', fontsize=12, verticalalignment='center',
+            horizontalalignment='center',
+            bbox=dict(boxstyle='round,pad=0.8',
+                      facecolor='lightblue', alpha=0.95)
+        )
 
-        return fig, axes, info_text
+        # New sector-times box - top-left of the figure, non-obstructive
+        sector_times_box = fig.text(
+            0.02, 0.88, '', fontsize=12, verticalalignment='center',
+            horizontalalignment='left',
+            bbox=dict(boxstyle='round,pad=0.6', facecolor='#f5f7ff',
+                      edgecolor='k', alpha=0.95)
+        )
+
+        return fig, axes, info_text, sector_times_box
 
     def _add_title_and_info(self, fig):
         """
@@ -249,12 +262,18 @@ class ACTelemetryVisualizer:
                     np.max(self.track_z) + padding * z_range)
 
         # Add sector legend
-        from matplotlib.lines import Line2D
+
         legend_elements = [Line2D([0], [0], color='red', lw=4, label='Sector 1'),
                            Line2D([0], [0], color='blue',
                                   lw=4, label='Sector 2'),
                            Line2D([0], [0], color='yellow', lw=4, label='Sector 3')]
-        ax.legend(handles=legend_elements, loc='upper right', fontsize=10)
+        # Legend placed outside the track axis (above, left-aligned) so it does not overlap the circuit
+        ax.legend(handles=legend_elements,
+                  title='Sectors',
+                  loc='lower left',
+                  bbox_to_anchor=(0.15, 1.15),
+                  ncol=3,
+                  frameon=True)
 
     def setup_telemetry_plots(self, ax_speed, ax_throttle_brake, ax_gear_rpm):
         """
@@ -303,7 +322,7 @@ class ACTelemetryVisualizer:
 
         return ax_rpm
 
-    def create_animation_objects(self, ax_track, ax_speed, ax_throttle_brake, ax_gear_rpm, ax_rpm, info_text):
+    def create_animation_objects(self, ax_track, ax_speed, ax_throttle_brake, ax_gear_rpm, ax_rpm, info_text, sector_times_box):
         """
         Initialize all visual elements and plot objects for animation.
 
@@ -323,13 +342,13 @@ class ACTelemetryVisualizer:
                           np.max(self.track_z) - np.min(self.track_z))
         car_size = track_range * 0.02
         car_marker = Circle(
-            (self.track_x[0], self.track_z[0]), car_size, color='white',
+            (self.track_x[0], self.track_z[0]), car_size, color='#00B25D',
             alpha=0.9, zorder=10, edgecolor='black', linewidth=2)
         ax_track.add_patch(car_marker)
 
         # Lines and text
         trail_line, = ax_track.plot(
-            [], [], 'white', linewidth=3, alpha=0.8, zorder=5)
+            [], [], '#00B25D', linewidth=3, alpha=0.8, zorder=5)
         speed_line, = ax_speed.plot([], [], 'blue', linewidth=3, alpha=0.9)
         throttle_line, = ax_throttle_brake.plot(
             [], [], 'green', linewidth=3, alpha=0.9, label='Throttle')
@@ -342,9 +361,15 @@ class ACTelemetryVisualizer:
         ax_throttle_brake.legend(loc='upper right')
 
         return {
-            'car_marker': car_marker, 'trail_line': trail_line, 'speed_line': speed_line,
-            'throttle_line': throttle_line, 'brake_line': brake_line, 'gear_line': gear_line,
-            'rpm_line': rpm_line, 'info_text': info_text
+            'car_marker': car_marker,
+            'trail_line': trail_line,
+            'speed_line': speed_line,
+            'throttle_line': throttle_line,
+            'brake_line': brake_line,
+            'gear_line': gear_line,
+            'rpm_line': rpm_line,
+            'info_text': info_text,
+            'sector_times_box': sector_times_box
         }
 
     def update_car_position(self, frame, objects):
@@ -394,29 +419,270 @@ class ACTelemetryVisualizer:
 
     def update_info_text(self, frame, objects):
         """
-        Update real-time telemetry information display.
+        Update the central "quick info" box (kept compact).
 
-        Args:
-            frame (int): Current animation frame number
-            objects (dict): Text object for real-time info display
+        This box intentionally omits lap time and current sector so that the
+        new dedicated sector-times box can contain that information instead.
         """
         if frame >= len(self.df):
             return
 
         row = self.df.iloc[frame]
-        current_sector_raw = row['CurrentSectorIndex']
-        # Display sectors as 1,2,3 for human-friendly legend (telemetry stores 0..2)
-        current_sector = int(current_sector_raw) + 1
 
         info_text = (f'Speed: {row["Speed_kmh"]:.1f} km/h\n'
-                     f'Gear: {row["Gear"]} | RPM: {row["RPM"]}\n'
+                     f'Gear: {int(row["Gear"])} | RPM: {int(row["RPM"])}\n'
                      f'Throttle: {row["Throttle"]:.2f}\n'
                      f'Brake: {row["Brake"]:.2f}\n'
                      f'Steering: {row["Steering"]:.3f}\n'
-                     f'Distance: {row["Distance"]:.0f}m\n'
-                     f'Current Sector: {current_sector}\n'
-                     f'Time: {row["CurrentLapTime_str"]}')
+                     f'Distance: {row["Distance"]:.0f} m')
         objects['info_text'].set_text(info_text)
+
+    def format_ms(self, ms):
+        """
+        Helper: format milliseconds into M:SS.mmm
+
+        Args:
+            ms (int or float or None): milliseconds
+
+        Returns:
+            str: formatted string like '1:21.786' or '-' if not available.
+        """
+        if ms is None or (isinstance(ms, float) and np.isnan(ms)):
+            return '-'
+        try:
+            ms = int(ms)
+        except Exception:
+            return '-'
+        s, ms_rem = divmod(ms, 1000)
+        m, s_rem = divmod(s, 60)
+        return f'{m}:{s_rem:02d}.{ms_rem:03d}'
+
+    def compute_sector_times_for_lap(self, frame_idx):
+        """
+        Compute approximate sector times (in ms) for the current lap at the
+        provided frame index.
+
+        Returns:
+            list: [s1_ms or None, s2_ms or None, s3_ms or None]
+        """
+        row = self.df.iloc[frame_idx]
+        current_lap = row.get('LapNumberTotal', None)
+
+        if current_lap is not None:
+            lap_df = self.df[self.df['LapNumberTotal'] == current_lap]
+        else:
+            # fallback: use the entire DataFrame (less accurate)
+            lap_df = self.df
+
+        if lap_df.empty:
+            return [None, None, None]
+
+        try:
+            lap_start_ms = int(lap_df['iCurrentTime_ms'].min())
+        except Exception:
+            lap_start_ms = None
+
+        s1 = s2 = s3 = None
+        # End of sector 1 marker: first row where CurrentSectorIndex == 1
+        try:
+            end_s1_row = lap_df[lap_df['CurrentSectorIndex'] == 1].iloc[0]
+            end_s1_ms = int(end_s1_row['iCurrentTime_ms'])
+            s1 = end_s1_ms - lap_start_ms if lap_start_ms is not None else None
+        except Exception:
+            s1 = None
+
+        # End of sector 2 marker: first row where CurrentSectorIndex == 2
+        try:
+            end_s2_row = lap_df[lap_df['CurrentSectorIndex'] == 2].iloc[0]
+            end_s2_ms = int(end_s2_row['iCurrentTime_ms'])
+            if s1 is not None:
+                s2 = end_s2_ms - (lap_start_ms + s1)
+            else:
+                s2 = end_s2_ms - lap_start_ms if lap_start_ms is not None else None
+        except Exception:
+            s2 = None
+
+        # Sector 3: attempt to find the first reset to sector 0 after end_s2
+        try:
+            if s2 is not None:
+                later = lap_df[lap_df['iCurrentTime_ms'] > end_s2_ms]
+                later_reset = later[later['CurrentSectorIndex'] == 0]
+                if not later_reset.empty:
+                    lap_end_ms = int(later_reset.iloc[0]['iCurrentTime_ms'])
+                    s3 = lap_end_ms - end_s2_ms
+        except Exception:
+            s3 = None
+
+        # Fallback: use LastSectorTime_ms to fill the last completed sector if missing
+        try:
+            last_sector_time_ms = row.get('LastSectorTime_ms', None)
+            if last_sector_time_ms is not None and not (isinstance(last_sector_time_ms, float) and np.isnan(last_sector_time_ms)):
+                current_sector_raw = int(row['CurrentSectorIndex'])  # 0..2
+                last_completed_display = ((current_sector_raw - 1) % 3) + 1
+                idx = last_completed_display - 1
+                if idx == 0 and s1 is None:
+                    s1 = int(last_sector_time_ms)
+                elif idx == 1 and s2 is None:
+                    s2 = int(last_sector_time_ms)
+                elif idx == 2 and s3 is None:
+                    s3 = int(last_sector_time_ms)
+        except Exception:
+            pass
+
+        return [s1, s2, s3]
+
+    def compute_dynamic_sector_times(self, frame_idx):
+        """
+        Compute dynamic sector times showing progress in real-time.
+
+        Shows completed sector times as final values, and current sector time as increasing.
+
+        Args:
+            frame_idx (int): Current frame index
+
+        Returns:
+            tuple: (s1_str, s2_str, s3_str) - Formatted time strings for display
+        """
+        if frame_idx >= len(self.df):
+            return '-', '-', '-'
+
+        row = self.df.iloc[frame_idx]
+        current_sector_raw = int(row['CurrentSectorIndex'])  # 0, 1, 2
+        current_time_ms = row.get('iCurrentTime_ms', None)
+
+        if current_time_ms is None:
+            return '-', '-', '-'
+
+        # Find the start of the current lap
+        current_lap = row.get('LapNumberTotal', None)
+        if current_lap is not None:
+            lap_df = self.df[self.df['LapNumberTotal'] == current_lap]
+        else:
+            # Fallback: use entire DataFrame
+            lap_df = self.df[:frame_idx + 1]
+
+        if lap_df.empty:
+            return '-', '-', '-'
+
+        try:
+            lap_start_ms = int(lap_df['iCurrentTime_ms'].min())
+        except Exception:
+            lap_start_ms = current_time_ms
+
+        # Initialize sector times
+        s1_final = None
+        s2_final = None
+        s3_final = None
+
+        # Find completed sector times within this lap
+        try:
+            # Sector 1 completion: first time we see CurrentSectorIndex == 1
+            s1_rows = lap_df[lap_df['CurrentSectorIndex'] == 1]
+            if not s1_rows.empty:
+                s1_end_ms = int(s1_rows.iloc[0]['iCurrentTime_ms'])
+                s1_final = s1_end_ms - lap_start_ms
+        except Exception:
+            pass
+
+        try:
+            # Sector 2 completion: first time we see CurrentSectorIndex == 2
+            s2_rows = lap_df[lap_df['CurrentSectorIndex'] == 2]
+            if not s2_rows.empty:
+                s2_end_ms = int(s2_rows.iloc[0]['iCurrentTime_ms'])
+                if s1_final is not None:
+                    s2_final = s2_end_ms - (lap_start_ms + s1_final)
+                else:
+                    # If S1 wasn't captured, calculate from lap start
+                    s2_final = s2_end_ms - lap_start_ms - (s1_final or 0)
+        except Exception:
+            pass
+
+        try:
+            # Sector 3 completion: lap completion or return to sector 0
+            s3_rows = lap_df[lap_df['CurrentSectorIndex'] == 0]
+            # Within last 5 seconds
+            s3_candidate_rows = s3_rows[s3_rows['iCurrentTime_ms']
+                                        > current_time_ms - 5000]
+            if not s3_candidate_rows.empty:
+                s3_end_ms = int(s3_candidate_rows.iloc[0]['iCurrentTime_ms'])
+                if s1_final is not None and s2_final is not None:
+                    s3_final = s3_end_ms - (lap_start_ms + s1_final + s2_final)
+        except Exception:
+            pass
+
+        # Calculate current sector progress
+        if current_sector_raw == 0:  # In Sector 1
+            current_sector_time = current_time_ms - lap_start_ms
+            s1_str = self.format_ms(
+                current_sector_time) if current_sector_time >= 0 else '0:00.000'
+            # Sectors 2 and 3 haven't started yet, show 0:00.000
+            s2_str = '0:00.000'
+            s3_str = '0:00.000'
+
+        elif current_sector_raw == 1:  # In Sector 2
+            s1_str = self.format_ms(s1_final) if s1_final is not None else '-'
+            if s1_final is not None:
+                current_sector_time = current_time_ms - \
+                    (lap_start_ms + s1_final)
+                s2_str = self.format_ms(
+                    current_sector_time) if current_sector_time >= 0 else '0:00.000'
+            else:
+                s2_str = self.format_ms(
+                    current_time_ms - lap_start_ms) if current_time_ms >= lap_start_ms else '0:00.000'
+            # Sector 3 hasn't started yet, show 0:00.000
+            s3_str = '0:00.000'
+
+        elif current_sector_raw == 2:  # In Sector 3
+            s1_str = self.format_ms(s1_final) if s1_final is not None else '-'
+            s2_str = self.format_ms(s2_final) if s2_final is not None else '-'
+            if s1_final is not None and s2_final is not None:
+                current_sector_time = current_time_ms - \
+                    (lap_start_ms + s1_final + s2_final)
+                s3_str = self.format_ms(
+                    current_sector_time) if current_sector_time >= 0 else '0:00.000'
+            else:
+                s3_str = self.format_ms(
+                    current_time_ms - lap_start_ms) if current_time_ms >= lap_start_ms else '0:00.000'
+
+        else:
+            # Fallback
+            s1_str = self.format_ms(
+                s1_final) if s1_final is not None else '0:00.000'
+            s2_str = self.format_ms(
+                s2_final) if s2_final is not None else '0:00.000'
+            s3_str = self.format_ms(
+                s3_final) if s3_final is not None else '0:00.000'
+
+        return s1_str, s2_str, s3_str
+
+    def update_sector_times_box(self, frame, objects):
+        """
+        Update the sector_times_box text object with dynamic sector times.
+
+        Shows real-time progress of current sector and completed times for finished sectors.
+        """
+        if frame >= len(self.df):
+            return
+
+        row = self.df.iloc[frame]
+
+        time_str = self.format_ms(row.get('iCurrentTime_ms', None))
+        current_sector_display = int(row['CurrentSectorIndex']) + 1
+
+        # Get dynamic sector times
+        s1_str, s2_str, s3_str = self.compute_dynamic_sector_times(frame)
+
+        best_time_str = self.format_ms(row.get('iBestTime_ms', None))
+        last_time_str = self.format_ms(row.get('iLastTime_ms', None))
+
+        box_text = (f'Time: {time_str}\n'
+                    f'Current Sector: {current_sector_display}\n'
+                    f'Sector 1 Time: {s1_str}\n'
+                    f'Sector 2 Time: {s2_str}\n'
+                    f'Sector 3 Time: {s3_str}\n'
+                    f'Best Time: {best_time_str}\n'
+                    f'Last Time: {last_time_str}')
+        objects['sector_times_box'].set_text(box_text)
 
     def animate_frame(self, frame, objects):
         """
@@ -435,6 +701,11 @@ class ACTelemetryVisualizer:
         self.update_car_position(frame, objects)
         self.update_telemetry_lines(frame, objects)
         self.update_info_text(frame, objects)
+        try:
+            self.update_sector_times_box(frame, objects)
+        except Exception:
+            # fail-safe so animation does not stop because of a sector-time edge case
+            pass
 
         return list(objects.values())
 
@@ -455,7 +726,7 @@ class ACTelemetryVisualizer:
         self.prepare_track_data()
 
         # Create plots
-        fig, axes, info_text = self.create_figure_layout()
+        fig, axes, info_text, sector_times_box = self.create_figure_layout()
         ax_track, ax_speed, ax_throttle_brake, ax_gear_rpm = axes.flatten()
 
         self.setup_track_plot(ax_track)
@@ -464,7 +735,7 @@ class ACTelemetryVisualizer:
 
         # Create animation
         objects = self.create_animation_objects(
-            ax_track, ax_speed, ax_throttle_brake, ax_gear_rpm, ax_rpm, info_text)
+            ax_track, ax_speed, ax_throttle_brake, ax_gear_rpm, ax_rpm, info_text, sector_times_box)
 
         print(f"Starting animation with {len(self.df)} frames...")
         anim = animation.FuncAnimation(fig, self.animate_frame, frames=len(self.df),
