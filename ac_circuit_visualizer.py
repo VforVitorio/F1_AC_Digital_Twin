@@ -461,19 +461,27 @@ class ACTelemetryVisualizer:
         """
         Get DataFrame for current lap.
 
+        This helper function extracts telemetry data for the current lap being analyzed.
+        It first tries to filter by LapNumberTotal to get accurate lap boundaries.
+        If lap number is not available, it falls back to using all available data.
+
         Args:
-            row: Current row data
-            frame_idx: Optional frame index for fallback
+            row: Current row data containing lap information
+            frame_idx: Optional frame index for fallback (limits data to current position)
 
         Returns:
-            pd.DataFrame: Data for current lap
+            pd.DataFrame: Filtered telemetry data for the current lap
         """
+        # Extract lap number from current telemetry row
         current_lap = row.get('LapNumberTotal', None)
 
         if current_lap is not None:
+            # Filter telemetry data to only include rows from the current lap
+            # This ensures accurate sector time calculations within lap boundaries
             lap_df = self.df[self.df['LapNumberTotal'] == current_lap]
         else:
-            # Fallback: use entire DataFrame or up to frame_idx
+            # Fallback strategy when lap number is unavailable
+            # Use entire DataFrame or limit to current frame position for better accuracy
             lap_df = self.df if frame_idx is None else self.df[:frame_idx + 1]
 
         return lap_df
@@ -482,101 +490,157 @@ class ACTelemetryVisualizer:
         """
         Get lap start time in milliseconds.
 
+        Finds the earliest timestamp in the lap data to establish the starting point
+        for all sector time calculations. This is crucial for accurate timing measurements.
+
         Args:
-            lap_df: DataFrame containing lap data
-            current_time_ms: Current time as fallback
+            lap_df: DataFrame containing lap data with 'iCurrentTime_ms' column
+            current_time_ms: Current time as fallback if lap data is invalid
 
         Returns:
-            int or None: Lap start time in milliseconds
+            int or None: Lap start time in milliseconds, or current_time_ms as fallback
         """
         try:
+            # Find the minimum (earliest) timestamp in the lap data
+            # This represents when the lap actually started
             return int(lap_df['iCurrentTime_ms'].min())
         except Exception:
+            # Fallback to current time if lap data is corrupted or missing timestamps
             return current_time_ms
 
     def _calculate_sector_1_time(self, lap_df, lap_start_ms):
         """
-        Calculate sector 1 time.
+        Calculate sector 1 time from lap data.
+
+        Finds the first occurrence where CurrentSectorIndex transitions to 1,
+        indicating the end of sector 1. The sector time is calculated as the
+        difference between this transition point and the lap start.
 
         Args:
-            lap_df: DataFrame containing lap data
-            lap_start_ms: Lap start time in milliseconds
+            lap_df: DataFrame containing lap data with sector indices
+            lap_start_ms: Lap start time in milliseconds for reference
 
         Returns:
-            int or None: Sector 1 time in milliseconds
+            int or None: Sector 1 time in milliseconds, None if sector not completed
         """
         try:
+            # Find the first row where driver enters sector 2 (CurrentSectorIndex == 1)
+            # This marks the end of sector 1 completion
             end_s1_row = lap_df[lap_df['CurrentSectorIndex'] == 1].iloc[0]
             end_s1_ms = int(end_s1_row['iCurrentTime_ms'])
+
+            # Calculate sector 1 time: end timestamp - lap start timestamp
             return end_s1_ms - lap_start_ms if lap_start_ms is not None else None
         except Exception:
+            # Return None if sector 1 hasn't been completed yet or data is missing
             return None
 
     def _calculate_sector_2_time(self, lap_df, lap_start_ms, s1_time):
         """
-        Calculate sector 2 time.
+        Calculate sector 2 time from lap data.
+
+        Finds the first occurrence where CurrentSectorIndex transitions to 2,
+        indicating the end of sector 2. The calculation depends on whether
+        sector 1 time is available for accurate cumulative timing.
 
         Args:
-            lap_df: DataFrame containing lap data
-            lap_start_ms: Lap start time in milliseconds
-            s1_time: Sector 1 time in milliseconds
+            lap_df: DataFrame containing lap data with sector indices
+            lap_start_ms: Lap start time in milliseconds for reference
+            s1_time: Sector 1 time in milliseconds (may be None)
 
         Returns:
-            int or None: Sector 2 time in milliseconds
+            int or None: Sector 2 time in milliseconds, None if sector not completed
         """
         try:
+            # Find the first row where driver enters sector 3 (CurrentSectorIndex == 2)
+            # This marks the end of sector 2 completion
             end_s2_row = lap_df[lap_df['CurrentSectorIndex'] == 2].iloc[0]
             end_s2_ms = int(end_s2_row['iCurrentTime_ms'])
+
             if s1_time is not None:
+                # Preferred calculation: subtract lap start + sector 1 time
+                # This gives us the pure sector 2 time
                 return end_s2_ms - (lap_start_ms + s1_time)
             else:
+                # Fallback calculation when sector 1 time is unavailable
+                # Less accurate but still provides sector 2 timing data
                 return end_s2_ms - lap_start_ms if lap_start_ms is not None else None
         except Exception:
+            # Return None if sector 2 hasn't been completed yet or data is missing
             return None
 
     def _calculate_sector_3_time(self, lap_df, lap_start_ms, s1_time, s2_time):
         """
-        Calculate sector 3 time.
+        Calculate sector 3 time from lap data.
+
+        Sector 3 is more complex as it ends when the lap completes, marked by
+        a reset to CurrentSectorIndex == 0. This function looks for the first
+        sector reset after sector 2 completion to determine sector 3 timing.
 
         Args:
-            lap_df: DataFrame containing lap data
-            lap_start_ms: Lap start time in milliseconds
-            s1_time: Sector 1 time in milliseconds
-            s2_time: Sector 2 time in milliseconds
+            lap_df: DataFrame containing lap data with sector indices
+            lap_start_ms: Lap start time in milliseconds for reference
+            s1_time: Sector 1 time in milliseconds (needed for cumulative calculation)
+            s2_time: Sector 2 time in milliseconds (needed for cumulative calculation)
 
         Returns:
-            int or None: Sector 3 time in milliseconds
+            int or None: Sector 3 time in milliseconds, None if sector not completed
         """
         try:
+            # Only calculate if we have both sector 1 and 2 times for accuracy
             if s2_time is not None:
+                # Calculate the timestamp when sector 2 ended (sector 3 started)
                 end_s2_ms = lap_start_ms + s1_time + s2_time
+
+                # Look for telemetry data after sector 2 completion
                 later = lap_df[lap_df['iCurrentTime_ms'] > end_s2_ms]
+
+                # Find the first reset to sector 0, indicating lap completion
                 later_reset = later[later['CurrentSectorIndex'] == 0]
+
                 if not later_reset.empty:
+                    # Calculate sector 3 time: lap end - sector 2 end
                     lap_end_ms = int(later_reset.iloc[0]['iCurrentTime_ms'])
                     return lap_end_ms - end_s2_ms
         except Exception:
+            # Exception handling for data corruption or incomplete laps
             pass
+
+        # Return None if calculation fails or prerequisites aren't met
         return None
 
     def _apply_last_sector_time_fallback(self, row, s1, s2, s3):
         """
         Apply fallback using LastSectorTime_ms for missing sector times.
 
+        When primary sector time calculations fail (due to data corruption or 
+        incomplete sectors), this function attempts to use the LastSectorTime_ms
+        field as a backup data source. It determines which sector was last
+        completed based on the current sector index.
+
         Args:
-            row: Current row data
-            s1, s2, s3: Current sector times (may be None)
+            row: Current telemetry row data containing LastSectorTime_ms
+            s1, s2, s3: Current sector times (may be None if calculation failed)
 
         Returns:
-            tuple: Updated (s1, s2, s3) with fallback applied
+            tuple: Updated (s1, s2, s3) with fallback values applied where possible
         """
         try:
+            # Extract the LastSectorTime_ms field from telemetry data
             last_sector_time_ms = row.get('LastSectorTime_ms', None)
-            if last_sector_time_ms is not None and not (isinstance(last_sector_time_ms, float) and np.isnan(last_sector_time_ms)):
-                current_sector_raw = int(row['CurrentSectorIndex'])  # 0..2
-                last_completed_display = ((current_sector_raw - 1) % 3) + 1
-                idx = last_completed_display - 1
 
+            # Validate that the fallback data is available and not corrupted
+            if last_sector_time_ms is not None and not (isinstance(last_sector_time_ms, float) and np.isnan(last_sector_time_ms)):
+                # Determine which sector was most recently completed
+                # 0..2 (telemetry format)
+                current_sector_raw = int(row['CurrentSectorIndex'])
+
+                # Calculate the display sector number (1..3) of the last completed sector
+                # Formula accounts for circular sector progression: 0->1->2->0
+                last_completed_display = ((current_sector_raw - 1) % 3) + 1
+                idx = last_completed_display - 1  # Convert to 0-based index for array access
+
+                # Apply fallback value to the appropriate sector if it's missing
                 if idx == 0 and s1 is None:
                     s1 = int(last_sector_time_ms)
                 elif idx == 1 and s2 is None:
@@ -584,6 +648,8 @@ class ACTelemetryVisualizer:
                 elif idx == 2 and s3 is None:
                     s3 = int(last_sector_time_ms)
         except Exception:
+            # Silently handle any errors in fallback processing
+            # Better to return partial data than crash the visualization
             pass
 
         return s1, s2, s3
@@ -593,24 +659,32 @@ class ACTelemetryVisualizer:
         Compute approximate sector times (in ms) for the current lap at the
         provided frame index.
 
+        This is the main entry point for sector time calculation. It orchestrates
+        the entire process by calling helper functions in logical order and
+        applying fallback strategies when needed.
+
         Returns:
             list: [s1_ms or None, s2_ms or None, s3_ms or None]
         """
+        # Extract telemetry data for current frame position
         row = self.df.iloc[frame_idx]
 
-        # Get lap data and start time
+        # Step 1: Get lap data and validate it's not empty
         lap_df = self._get_lap_data(row)
         if lap_df.empty:
             return [None, None, None]
 
+        # Step 2: Establish lap timing baseline
         lap_start_ms = self._get_lap_start_time(lap_df)
 
-        # Calculate sector times
+        # Step 3: Calculate each sector time using dedicated functions
+        # These functions handle sector boundary detection and timing calculations
         s1 = self._calculate_sector_1_time(lap_df, lap_start_ms)
         s2 = self._calculate_sector_2_time(lap_df, lap_start_ms, s1)
         s3 = self._calculate_sector_3_time(lap_df, lap_start_ms, s1, s2)
 
-        # Apply fallback if needed
+        # Step 4: Apply fallback strategy for any missing sector times
+        # Uses LastSectorTime_ms as backup data source
         s1, s2, s3 = self._apply_last_sector_time_fallback(row, s1, s2, s3)
 
         return [s1, s2, s3]
@@ -619,13 +693,17 @@ class ACTelemetryVisualizer:
         """
         Get completed sector times from lap data.
 
+        This convenience function calculates all three sector times in one call,
+        ensuring consistent calculation methodology across all sectors.
+
         Args:
-            lap_df: DataFrame containing lap data
-            lap_start_ms: Lap start time in milliseconds
+            lap_df: DataFrame containing lap data with sector transitions
+            lap_start_ms: Lap start time in milliseconds for reference
 
         Returns:
             tuple: (s1_final, s2_final, s3_final) - completed sector times or None if not completed
         """
+        # Use existing calculation functions to maintain consistency
         s1_final = self._calculate_sector_1_time(lap_df, lap_start_ms)
         s2_final = self._calculate_sector_2_time(
             lap_df, lap_start_ms, s1_final)
@@ -638,12 +716,20 @@ class ACTelemetryVisualizer:
         """
         Format sector times when currently in sector 1.
 
+        During sector 1, only the current sector time is dynamic (increasing).
+        Sectors 2 and 3 haven't started yet, so they display as zero.
+
         Returns:
             tuple: (s1_str, s2_str, s3_str) formatted display strings
         """
+        # Calculate elapsed time in current sector 1
         current_sector_time = current_time_ms - lap_start_ms
+
+        # Format current sector 1 time (dynamic, increasing)
         s1_str = self.format_ms(
             current_sector_time) if current_sector_time >= 0 else '0:00.000'
+
+        # Sectors 2 and 3 haven't started - display as zero
         s2_str = '0:00.000'
         s3_str = '0:00.000'
         return s1_str, s2_str, s3_str
@@ -652,19 +738,27 @@ class ACTelemetryVisualizer:
         """
         Format sector times when currently in sector 2.
 
+        During sector 2, sector 1 shows its final completed time, sector 2 
+        shows dynamic increasing time, and sector 3 remains at zero.
+
         Returns:
             tuple: (s1_str, s2_str, s3_str) formatted display strings
         """
+        # Display sector 1 final time (completed) or fallback indicator
         s1_str = self.format_ms(s1_final) if s1_final is not None else '-'
 
+        # Calculate current sector 2 elapsed time
         if s1_final is not None:
+            # Preferred: subtract lap start + sector 1 time for accurate sector 2 time
             current_sector_time = current_time_ms - (lap_start_ms + s1_final)
             s2_str = self.format_ms(
                 current_sector_time) if current_sector_time >= 0 else '0:00.000'
         else:
+            # Fallback: use total elapsed time when sector 1 time is unavailable
             s2_str = self.format_ms(
                 current_time_ms - lap_start_ms) if current_time_ms >= lap_start_ms else '0:00.000'
 
+        # Sector 3 hasn't started yet
         s3_str = '0:00.000'
         return s1_str, s2_str, s3_str
 
@@ -672,18 +766,25 @@ class ACTelemetryVisualizer:
         """
         Format sector times when currently in sector 3.
 
+        During sector 3, sectors 1 and 2 show their final completed times,
+        while sector 3 shows dynamic increasing time until lap completion.
+
         Returns:
             tuple: (s1_str, s2_str, s3_str) formatted display strings
         """
+        # Display final times for completed sectors 1 and 2
         s1_str = self.format_ms(s1_final) if s1_final is not None else '-'
         s2_str = self.format_ms(s2_final) if s2_final is not None else '-'
 
+        # Calculate current sector 3 elapsed time
         if s1_final is not None and s2_final is not None:
+            # Preferred: subtract cumulative time of previous sectors
             current_sector_time = current_time_ms - \
                 (lap_start_ms + s1_final + s2_final)
             s3_str = self.format_ms(
                 current_sector_time) if current_sector_time >= 0 else '0:00.000'
         else:
+            # Fallback: use total elapsed time when previous sector data is incomplete
             s3_str = self.format_ms(
                 current_time_ms - lap_start_ms) if current_time_ms >= lap_start_ms else '0:00.000'
 
@@ -693,9 +794,13 @@ class ACTelemetryVisualizer:
         """
         Format sector times for fallback case.
 
+        Used when the current sector index is invalid or unrecognized.
+        Displays available sector times or default zeros for missing data.
+
         Returns:
             tuple: (s1_str, s2_str, s3_str) formatted display strings
         """
+        # Display final sector times if available, otherwise show zeros
         s1_str = self.format_ms(
             s1_final) if s1_final is not None else '0:00.000'
         s2_str = self.format_ms(
@@ -708,44 +813,53 @@ class ACTelemetryVisualizer:
         """
         Compute dynamic sector times showing progress in real-time.
 
-        Shows completed sector times as final values, and current sector time as increasing.
+        This is the main entry point for real-time sector time display.
+        It shows completed sector times as final values and the current 
+        sector time as a dynamically increasing counter, providing live
+        feedback during the visualization.
 
         Args:
-            frame_idx (int): Current frame index
+            frame_idx (int): Current frame index in the telemetry data
 
         Returns:
             tuple: (s1_str, s2_str, s3_str) - Formatted time strings for display
         """
+        # Validate frame index bounds
         if frame_idx >= len(self.df):
             return '-', '-', '-'
 
+        # Extract current telemetry data point
         row = self.df.iloc[frame_idx]
-        current_sector_raw = int(row['CurrentSectorIndex'])  # 0, 1, 2
+        # 0, 1, 2 (telemetry format)
+        current_sector_raw = int(row['CurrentSectorIndex'])
         current_time_ms = row.get('iCurrentTime_ms', None)
 
+        # Validate timestamp availability
         if current_time_ms is None:
             return '-', '-', '-'
 
-        # Get lap data and start time
+        # Step 1: Get lap data and establish timing baseline
         lap_df = self._get_lap_data(row, frame_idx)
         if lap_df.empty:
             return '-', '-', '-'
 
+        # Step 2: Calculate lap start time for reference
         lap_start_ms = self._get_lap_start_time(lap_df, current_time_ms)
 
-        # Get completed sector times
+        # Step 3: Get all completed sector times using existing calculation logic
         s1_final, s2_final, s3_final = self._get_completed_sector_times(
             lap_df, lap_start_ms)
 
-        # Format sector times based on current sector
-        if current_sector_raw == 0:  # In Sector 1
+        # Step 4: Format display based on current sector position
+        # Each sector has different display logic for dynamic timing
+        if current_sector_raw == 0:  # Currently in Sector 1
             return self._format_sector_1_display(current_time_ms, lap_start_ms, s1_final, s2_final, s3_final)
-        elif current_sector_raw == 1:  # In Sector 2
+        elif current_sector_raw == 1:  # Currently in Sector 2
             return self._format_sector_2_display(current_time_ms, lap_start_ms, s1_final, s2_final, s3_final)
-        elif current_sector_raw == 2:  # In Sector 3
+        elif current_sector_raw == 2:  # Currently in Sector 3
             return self._format_sector_3_display(current_time_ms, lap_start_ms, s1_final, s2_final, s3_final)
         else:
-            # Fallback
+            # Handle invalid or unrecognized sector indices
             return self._format_fallback_display(s1_final, s2_final, s3_final)
 
     def update_sector_times_box(self, frame, objects):
