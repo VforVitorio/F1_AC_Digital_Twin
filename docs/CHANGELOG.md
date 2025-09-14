@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased][Unreleased]
 
+### Refactored
+
+- **AC Circuit Visualizer Code Architecture**: Major refactoring of sector timing calculation functions
+  - Split `compute_sector_times_for_lap()` from ~70 lines into 20 lines using focused helper functions
+  - Split `compute_dynamic_sector_times()` from ~110 lines into 35 lines with modular components
+  - **New Data Retrieval Helpers**: `_get_lap_data()` and `_get_lap_start_time()` for clean lap boundary detection
+  - **New Sector Calculation Helpers**: Individual functions for each sector (`_calculate_sector_1_time()`, `_calculate_sector_2_time()`, `_calculate_sector_3_time()`)
+  - **New Fallback Logic Helper**: `_apply_last_sector_time_fallback()` for robust error recovery using LastSectorTime_ms
+  - **New Display Formatting Helpers**: Dedicated functions for each sector display state (`_format_sector_1_display()`, `_format_sector_2_display()`, `_format_sector_3_display()`, `_format_fallback_display()`)
+  - **Comprehensive English Documentation**: Detailed docstrings and inline comments explaining telemetry sector mapping (0-2 → 1-3), timing calculations, and fallback strategies
+  - **Enhanced Maintainability**: Each function now has single responsibility, making testing, debugging, and future modifications significantly easier
+  - **Preserved Functionality**: Zero breaking changes - all existing behavior and edge cases maintained while improving code organization
+
 ---
 
 ## [1.2.0][1.2.0] - 2025-09-13
