@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.patches import Circle
+from matplotlib.collections import LineCollection
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -14,6 +15,7 @@ class ACTelemetryVisualizer:
         self.df = None
         self.track_x = None
         self.track_z = None
+        self.sector_colors_map = {1: 'red', 2: 'blue', 3: 'yellow'}
 
     def load_telemetry_data(self):
         """
@@ -45,6 +47,36 @@ class ACTelemetryVisualizer:
             f"   Speed range: {self.df['Speed_kmh'].min():.1f} - {self.df['Speed_kmh'].max():.1f} km/h")
         print(f"   Distance: {self.df['Distance'].max():.1f} m")
         print(f"   Lap time: {self.df['CurrentLapTime_str'].iloc[-1]}")
+
+        # Print sector information
+        sectors = self.df['CurrentSectorIndex'].unique()
+        print(f"   Sectors found: {sorted(sectors)}")
+
+    def prepare_sector_colors(self):
+        """
+        Create color arrays for track segments based on sector information.
+
+        Returns:
+            list: Colors for each track segment based on current sector
+        """
+        sector_colors = []
+        sectors_found = self.df['CurrentSectorIndex'].unique()
+        print(f"Debug: Unique sectors in data: {sorted(sectors_found)}")
+
+        for sector in self.df['CurrentSectorIndex']:
+            # The telemetry uses 0,1,2 but our mapping keys are 1,2,3.
+            # Map telemetry value -> display sector by adding 1.
+            display_sector = int(sector) + 1
+            color = self.sector_colors_map.get(display_sector, 'gray')
+            sector_colors.append(color)
+
+        # Count colors to verify mapping
+        color_counts = {}
+        for color in sector_colors:
+            color_counts[color] = color_counts.get(color, 0) + 1
+        print(f"Debug: Color distribution: {color_counts}")
+
+        return sector_colors
 
     def center_coordinates(self, x, z):
         """
@@ -179,14 +211,31 @@ class ACTelemetryVisualizer:
 
     def setup_track_plot(self, ax):
         """
-        Configure the track position subplot with proper scaling and appearance.
+        Configure the track position subplot with sector colors.
 
         Args:
             ax (matplotlib.axes.Axes): Axes object for the track plot
         """
-        ax.plot(self.track_x, self.track_z, 'gray', linewidth=3, alpha=0.4)
+        # Create colored track segments based on sectors
+        sector_colors = self.prepare_sector_colors()
+
+        # Create line segments for colored track
+        segments = []
+        colors = []
+
+        for i in range(len(self.track_x) - 1):
+            segment = [[self.track_x[i], self.track_z[i]],
+                       [self.track_x[i+1], self.track_z[i+1]]]
+            segments.append(segment)
+            colors.append(sector_colors[i])
+
+        # Create LineCollection for colored track
+        track_collection = LineCollection(segments, colors=colors,
+                                          linewidths=4, alpha=0.8)
+        ax.add_collection(track_collection)
+
         ax.set_aspect('equal')
-        ax.set_title('Track Position')
+        ax.set_title('Track Position (Colored by Sector)')
         ax.grid(True, alpha=0.3)
 
         # Add padding
@@ -198,6 +247,14 @@ class ACTelemetryVisualizer:
                     np.max(self.track_x) + padding * x_range)
         ax.set_ylim(np.min(self.track_z) - padding * z_range,
                     np.max(self.track_z) + padding * z_range)
+
+        # Add sector legend
+        from matplotlib.lines import Line2D
+        legend_elements = [Line2D([0], [0], color='red', lw=4, label='Sector 1'),
+                           Line2D([0], [0], color='blue',
+                                  lw=4, label='Sector 2'),
+                           Line2D([0], [0], color='yellow', lw=4, label='Sector 3')]
+        ax.legend(handles=legend_elements, loc='upper right', fontsize=10)
 
     def setup_telemetry_plots(self, ax_speed, ax_throttle_brake, ax_gear_rpm):
         """
@@ -266,12 +323,13 @@ class ACTelemetryVisualizer:
                           np.max(self.track_z) - np.min(self.track_z))
         car_size = track_range * 0.02
         car_marker = Circle(
-            (self.track_x[0], self.track_z[0]), car_size, color='red', alpha=0.9, zorder=10)
+            (self.track_x[0], self.track_z[0]), car_size, color='white',
+            alpha=0.9, zorder=10, edgecolor='black', linewidth=2)
         ax_track.add_patch(car_marker)
 
         # Lines and text
         trail_line, = ax_track.plot(
-            [], [], 'red', linewidth=2, alpha=0.6, zorder=5)
+            [], [], 'white', linewidth=3, alpha=0.8, zorder=5)
         speed_line, = ax_speed.plot([], [], 'blue', linewidth=3, alpha=0.9)
         throttle_line, = ax_throttle_brake.plot(
             [], [], 'green', linewidth=3, alpha=0.9, label='Throttle')
@@ -340,18 +398,23 @@ class ACTelemetryVisualizer:
 
         Args:
             frame (int): Current animation frame number
-            objects (dict): Dictionary containing animation objects
+            objects (dict): Text object for real-time info display
         """
         if frame >= len(self.df):
             return
 
         row = self.df.iloc[frame]
+        current_sector_raw = row['CurrentSectorIndex']
+        # Display sectors as 1,2,3 for human-friendly legend (telemetry stores 0..2)
+        current_sector = int(current_sector_raw) + 1
+
         info_text = (f'Speed: {row["Speed_kmh"]:.1f} km/h\n'
                      f'Gear: {row["Gear"]} | RPM: {row["RPM"]}\n'
                      f'Throttle: {row["Throttle"]:.2f}\n'
                      f'Brake: {row["Brake"]:.2f}\n'
                      f'Steering: {row["Steering"]:.3f}\n'
                      f'Distance: {row["Distance"]:.0f}m\n'
+                     f'Current Sector: {current_sector}\n'
                      f'Time: {row["CurrentLapTime_str"]}')
         objects['info_text'].set_text(info_text)
 
