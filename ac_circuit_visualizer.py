@@ -457,69 +457,126 @@ class ACTelemetryVisualizer:
         m, s_rem = divmod(s, 60)
         return f'{m}:{s_rem:02d}.{ms_rem:03d}'
 
-    def compute_sector_times_for_lap(self, frame_idx):
+    def _get_lap_data(self, row, frame_idx=None):
         """
-        Compute approximate sector times (in ms) for the current lap at the
-        provided frame index.
+        Get DataFrame for current lap.
+
+        Args:
+            row: Current row data
+            frame_idx: Optional frame index for fallback
 
         Returns:
-            list: [s1_ms or None, s2_ms or None, s3_ms or None]
+            pd.DataFrame: Data for current lap
         """
-        row = self.df.iloc[frame_idx]
         current_lap = row.get('LapNumberTotal', None)
 
         if current_lap is not None:
             lap_df = self.df[self.df['LapNumberTotal'] == current_lap]
         else:
-            # fallback: use the entire DataFrame (less accurate)
-            lap_df = self.df
+            # Fallback: use entire DataFrame or up to frame_idx
+            lap_df = self.df if frame_idx is None else self.df[:frame_idx + 1]
 
-        if lap_df.empty:
-            return [None, None, None]
+        return lap_df
 
+    def _get_lap_start_time(self, lap_df, current_time_ms=None):
+        """
+        Get lap start time in milliseconds.
+
+        Args:
+            lap_df: DataFrame containing lap data
+            current_time_ms: Current time as fallback
+
+        Returns:
+            int or None: Lap start time in milliseconds
+        """
         try:
-            lap_start_ms = int(lap_df['iCurrentTime_ms'].min())
+            return int(lap_df['iCurrentTime_ms'].min())
         except Exception:
-            lap_start_ms = None
+            return current_time_ms
 
-        s1 = s2 = s3 = None
-        # End of sector 1 marker: first row where CurrentSectorIndex == 1
+    def _calculate_sector_1_time(self, lap_df, lap_start_ms):
+        """
+        Calculate sector 1 time.
+
+        Args:
+            lap_df: DataFrame containing lap data
+            lap_start_ms: Lap start time in milliseconds
+
+        Returns:
+            int or None: Sector 1 time in milliseconds
+        """
         try:
             end_s1_row = lap_df[lap_df['CurrentSectorIndex'] == 1].iloc[0]
             end_s1_ms = int(end_s1_row['iCurrentTime_ms'])
-            s1 = end_s1_ms - lap_start_ms if lap_start_ms is not None else None
+            return end_s1_ms - lap_start_ms if lap_start_ms is not None else None
         except Exception:
-            s1 = None
+            return None
 
-        # End of sector 2 marker: first row where CurrentSectorIndex == 2
+    def _calculate_sector_2_time(self, lap_df, lap_start_ms, s1_time):
+        """
+        Calculate sector 2 time.
+
+        Args:
+            lap_df: DataFrame containing lap data
+            lap_start_ms: Lap start time in milliseconds
+            s1_time: Sector 1 time in milliseconds
+
+        Returns:
+            int or None: Sector 2 time in milliseconds
+        """
         try:
             end_s2_row = lap_df[lap_df['CurrentSectorIndex'] == 2].iloc[0]
             end_s2_ms = int(end_s2_row['iCurrentTime_ms'])
-            if s1 is not None:
-                s2 = end_s2_ms - (lap_start_ms + s1)
+            if s1_time is not None:
+                return end_s2_ms - (lap_start_ms + s1_time)
             else:
-                s2 = end_s2_ms - lap_start_ms if lap_start_ms is not None else None
+                return end_s2_ms - lap_start_ms if lap_start_ms is not None else None
         except Exception:
-            s2 = None
+            return None
 
-        # Sector 3: attempt to find the first reset to sector 0 after end_s2
+    def _calculate_sector_3_time(self, lap_df, lap_start_ms, s1_time, s2_time):
+        """
+        Calculate sector 3 time.
+
+        Args:
+            lap_df: DataFrame containing lap data
+            lap_start_ms: Lap start time in milliseconds
+            s1_time: Sector 1 time in milliseconds
+            s2_time: Sector 2 time in milliseconds
+
+        Returns:
+            int or None: Sector 3 time in milliseconds
+        """
         try:
-            if s2 is not None:
+            if s2_time is not None:
+                end_s2_ms = lap_start_ms + s1_time + s2_time
                 later = lap_df[lap_df['iCurrentTime_ms'] > end_s2_ms]
                 later_reset = later[later['CurrentSectorIndex'] == 0]
                 if not later_reset.empty:
                     lap_end_ms = int(later_reset.iloc[0]['iCurrentTime_ms'])
-                    s3 = lap_end_ms - end_s2_ms
+                    return lap_end_ms - end_s2_ms
         except Exception:
-            s3 = None
+            pass
+        return None
 
-        # Fallback: use LastSectorTime_ms to fill the last completed sector if missing
+    def _apply_last_sector_time_fallback(self, row, s1, s2, s3):
+        """
+        Apply fallback using LastSectorTime_ms for missing sector times.
+
+        Args:
+            row: Current row data
+            s1, s2, s3: Current sector times (may be None)
+
+        Returns:
+            tuple: Updated (s1, s2, s3) with fallback applied
+        """
         try:
             last_sector_time_ms = row.get('LastSectorTime_ms', None)
             if last_sector_time_ms is not None and not (isinstance(last_sector_time_ms, float) and np.isnan(last_sector_time_ms)):
                 current_sector_raw = int(row['CurrentSectorIndex'])  # 0..2
                 last_completed_display = ((current_sector_raw - 1) % 3) + 1
                 idx = last_completed_display - 1
+
                 if idx == 0 and s1 is None:
                     s1 = int(last_sector_time_ms)
                 elif idx == 1 and s2 is None:
@@ -529,7 +586,123 @@ class ACTelemetryVisualizer:
         except Exception:
             pass
 
+        return s1, s2, s3
+
+    def compute_sector_times_for_lap(self, frame_idx):
+        """
+        Compute approximate sector times (in ms) for the current lap at the
+        provided frame index.
+
+        Returns:
+            list: [s1_ms or None, s2_ms or None, s3_ms or None]
+        """
+        row = self.df.iloc[frame_idx]
+
+        # Get lap data and start time
+        lap_df = self._get_lap_data(row)
+        if lap_df.empty:
+            return [None, None, None]
+
+        lap_start_ms = self._get_lap_start_time(lap_df)
+
+        # Calculate sector times
+        s1 = self._calculate_sector_1_time(lap_df, lap_start_ms)
+        s2 = self._calculate_sector_2_time(lap_df, lap_start_ms, s1)
+        s3 = self._calculate_sector_3_time(lap_df, lap_start_ms, s1, s2)
+
+        # Apply fallback if needed
+        s1, s2, s3 = self._apply_last_sector_time_fallback(row, s1, s2, s3)
+
         return [s1, s2, s3]
+
+    def _get_completed_sector_times(self, lap_df, lap_start_ms):
+        """
+        Get completed sector times from lap data.
+
+        Args:
+            lap_df: DataFrame containing lap data
+            lap_start_ms: Lap start time in milliseconds
+
+        Returns:
+            tuple: (s1_final, s2_final, s3_final) - completed sector times or None if not completed
+        """
+        s1_final = self._calculate_sector_1_time(lap_df, lap_start_ms)
+        s2_final = self._calculate_sector_2_time(
+            lap_df, lap_start_ms, s1_final)
+        s3_final = self._calculate_sector_3_time(
+            lap_df, lap_start_ms, s1_final, s2_final)
+
+        return s1_final, s2_final, s3_final
+
+    def _format_sector_1_display(self, current_time_ms, lap_start_ms, s1_final, s2_final, s3_final):
+        """
+        Format sector times when currently in sector 1.
+
+        Returns:
+            tuple: (s1_str, s2_str, s3_str) formatted display strings
+        """
+        current_sector_time = current_time_ms - lap_start_ms
+        s1_str = self.format_ms(
+            current_sector_time) if current_sector_time >= 0 else '0:00.000'
+        s2_str = '0:00.000'
+        s3_str = '0:00.000'
+        return s1_str, s2_str, s3_str
+
+    def _format_sector_2_display(self, current_time_ms, lap_start_ms, s1_final, s2_final, s3_final):
+        """
+        Format sector times when currently in sector 2.
+
+        Returns:
+            tuple: (s1_str, s2_str, s3_str) formatted display strings
+        """
+        s1_str = self.format_ms(s1_final) if s1_final is not None else '-'
+
+        if s1_final is not None:
+            current_sector_time = current_time_ms - (lap_start_ms + s1_final)
+            s2_str = self.format_ms(
+                current_sector_time) if current_sector_time >= 0 else '0:00.000'
+        else:
+            s2_str = self.format_ms(
+                current_time_ms - lap_start_ms) if current_time_ms >= lap_start_ms else '0:00.000'
+
+        s3_str = '0:00.000'
+        return s1_str, s2_str, s3_str
+
+    def _format_sector_3_display(self, current_time_ms, lap_start_ms, s1_final, s2_final, s3_final):
+        """
+        Format sector times when currently in sector 3.
+
+        Returns:
+            tuple: (s1_str, s2_str, s3_str) formatted display strings
+        """
+        s1_str = self.format_ms(s1_final) if s1_final is not None else '-'
+        s2_str = self.format_ms(s2_final) if s2_final is not None else '-'
+
+        if s1_final is not None and s2_final is not None:
+            current_sector_time = current_time_ms - \
+                (lap_start_ms + s1_final + s2_final)
+            s3_str = self.format_ms(
+                current_sector_time) if current_sector_time >= 0 else '0:00.000'
+        else:
+            s3_str = self.format_ms(
+                current_time_ms - lap_start_ms) if current_time_ms >= lap_start_ms else '0:00.000'
+
+        return s1_str, s2_str, s3_str
+
+    def _format_fallback_display(self, s1_final, s2_final, s3_final):
+        """
+        Format sector times for fallback case.
+
+        Returns:
+            tuple: (s1_str, s2_str, s3_str) formatted display strings
+        """
+        s1_str = self.format_ms(
+            s1_final) if s1_final is not None else '0:00.000'
+        s2_str = self.format_ms(
+            s2_final) if s2_final is not None else '0:00.000'
+        s3_str = self.format_ms(
+            s3_final) if s3_final is not None else '0:00.000'
+        return s1_str, s2_str, s3_str
 
     def compute_dynamic_sector_times(self, frame_idx):
         """
@@ -553,107 +726,27 @@ class ACTelemetryVisualizer:
         if current_time_ms is None:
             return '-', '-', '-'
 
-        # Find the start of the current lap
-        current_lap = row.get('LapNumberTotal', None)
-        if current_lap is not None:
-            lap_df = self.df[self.df['LapNumberTotal'] == current_lap]
-        else:
-            # Fallback: use entire DataFrame
-            lap_df = self.df[:frame_idx + 1]
-
+        # Get lap data and start time
+        lap_df = self._get_lap_data(row, frame_idx)
         if lap_df.empty:
             return '-', '-', '-'
 
-        try:
-            lap_start_ms = int(lap_df['iCurrentTime_ms'].min())
-        except Exception:
-            lap_start_ms = current_time_ms
+        lap_start_ms = self._get_lap_start_time(lap_df, current_time_ms)
 
-        # Initialize sector times
-        s1_final = None
-        s2_final = None
-        s3_final = None
+        # Get completed sector times
+        s1_final, s2_final, s3_final = self._get_completed_sector_times(
+            lap_df, lap_start_ms)
 
-        # Find completed sector times within this lap
-        try:
-            # Sector 1 completion: first time we see CurrentSectorIndex == 1
-            s1_rows = lap_df[lap_df['CurrentSectorIndex'] == 1]
-            if not s1_rows.empty:
-                s1_end_ms = int(s1_rows.iloc[0]['iCurrentTime_ms'])
-                s1_final = s1_end_ms - lap_start_ms
-        except Exception:
-            pass
-
-        try:
-            # Sector 2 completion: first time we see CurrentSectorIndex == 2
-            s2_rows = lap_df[lap_df['CurrentSectorIndex'] == 2]
-            if not s2_rows.empty:
-                s2_end_ms = int(s2_rows.iloc[0]['iCurrentTime_ms'])
-                if s1_final is not None:
-                    s2_final = s2_end_ms - (lap_start_ms + s1_final)
-                else:
-                    # If S1 wasn't captured, calculate from lap start
-                    s2_final = s2_end_ms - lap_start_ms - (s1_final or 0)
-        except Exception:
-            pass
-
-        try:
-            # Sector 3 completion: lap completion or return to sector 0
-            s3_rows = lap_df[lap_df['CurrentSectorIndex'] == 0]
-            # Within last 5 seconds
-            s3_candidate_rows = s3_rows[s3_rows['iCurrentTime_ms']
-                                        > current_time_ms - 5000]
-            if not s3_candidate_rows.empty:
-                s3_end_ms = int(s3_candidate_rows.iloc[0]['iCurrentTime_ms'])
-                if s1_final is not None and s2_final is not None:
-                    s3_final = s3_end_ms - (lap_start_ms + s1_final + s2_final)
-        except Exception:
-            pass
-
-        # Calculate current sector progress
+        # Format sector times based on current sector
         if current_sector_raw == 0:  # In Sector 1
-            current_sector_time = current_time_ms - lap_start_ms
-            s1_str = self.format_ms(
-                current_sector_time) if current_sector_time >= 0 else '0:00.000'
-            # Sectors 2 and 3 haven't started yet, show 0:00.000
-            s2_str = '0:00.000'
-            s3_str = '0:00.000'
-
+            return self._format_sector_1_display(current_time_ms, lap_start_ms, s1_final, s2_final, s3_final)
         elif current_sector_raw == 1:  # In Sector 2
-            s1_str = self.format_ms(s1_final) if s1_final is not None else '-'
-            if s1_final is not None:
-                current_sector_time = current_time_ms - \
-                    (lap_start_ms + s1_final)
-                s2_str = self.format_ms(
-                    current_sector_time) if current_sector_time >= 0 else '0:00.000'
-            else:
-                s2_str = self.format_ms(
-                    current_time_ms - lap_start_ms) if current_time_ms >= lap_start_ms else '0:00.000'
-            # Sector 3 hasn't started yet, show 0:00.000
-            s3_str = '0:00.000'
-
+            return self._format_sector_2_display(current_time_ms, lap_start_ms, s1_final, s2_final, s3_final)
         elif current_sector_raw == 2:  # In Sector 3
-            s1_str = self.format_ms(s1_final) if s1_final is not None else '-'
-            s2_str = self.format_ms(s2_final) if s2_final is not None else '-'
-            if s1_final is not None and s2_final is not None:
-                current_sector_time = current_time_ms - \
-                    (lap_start_ms + s1_final + s2_final)
-                s3_str = self.format_ms(
-                    current_sector_time) if current_sector_time >= 0 else '0:00.000'
-            else:
-                s3_str = self.format_ms(
-                    current_time_ms - lap_start_ms) if current_time_ms >= lap_start_ms else '0:00.000'
-
+            return self._format_sector_3_display(current_time_ms, lap_start_ms, s1_final, s2_final, s3_final)
         else:
             # Fallback
-            s1_str = self.format_ms(
-                s1_final) if s1_final is not None else '0:00.000'
-            s2_str = self.format_ms(
-                s2_final) if s2_final is not None else '0:00.000'
-            s3_str = self.format_ms(
-                s3_final) if s3_final is not None else '0:00.000'
-
-        return s1_str, s2_str, s3_str
+            return self._format_fallback_display(s1_final, s2_final, s3_final)
 
     def update_sector_times_box(self, frame, objects):
         """
