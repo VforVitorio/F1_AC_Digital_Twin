@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.4.0][1.4.0] - 2025-09-15
+
+### Refactored
+
+- **Export Function Modularization**: Complete refactoring of `export_lap_data()` function following single responsibility principle
+  - **New Helper Functions**: `extract_session_timestamp()`, `clean_lap_data_for_export()`, `generate_lap_filename()`, `log_export_success()`, `validate_lap_data()`
+  - **Improved Maintainability**: Transformed monolithic 60+ line function into modular components with clear responsibilities
+  - **Enhanced Testability**: Each auxiliary function can be tested independently, improving code reliability
+  - **Better Error Handling**: Dedicated validation function ensures data integrity before processing
+  - **Cleaner Code Structure**: Main export function now focuses on orchestration while delegating specific tasks to helper functions
+
+### Added
+
+- **Data Engineering Pipeline Structure**: Implemented professional data organization following ML best practices
+  - **New Directory Structure**: Reorganized from `TELEMETRY/` to `data/raw/` with scalable data engineering hierarchy
+  - **ML-Ready Directories**: Added `data/processed/` for feature-engineered datasets and `data/weights/` for trained models
+  - **Repository Persistence**: Created `.gitkeep` files with comprehensive documentation for empty directories
+  - **Path Standardization**: Updated all file paths and documentation to reflect new data organization
+
+### Enhanced
+
+- **Telemetry File Path Management**: Comprehensive update of all file references throughout the project
+  - **Configuration Updates**: All `TELEMETRY_FILE` paths updated to use new `data/raw/` structure
+  - **Export Path Updates**: `LAPS_OUTPUT` directory relocated to `data/raw/LAPS_OUTPUT/` for consistency
+  - **Documentation Alignment**: Function docstrings and comments updated to reflect new file paths
+  - **Zero Breaking Changes**: Maintains backwards compatibility while improving organization
+
+### Infrastructure
+
+- **Git Repository Structure**: Enhanced version control management for data science workflows
+  - **Empty Directory Tracking**: `.gitkeep` files ensure important directory structure is preserved in version control
+  - **Data Engineering Documentation**: Detailed comments in `.gitkeep` files explaining directory purposes and expected contents
+  - **Scalable Architecture**: Foundation prepared for future ML model training, feature engineering, and data processing pipelines
+
+---
+
 ## [1.3.0][1.3.0] - 2025-09-14
 
 ### Refactored
