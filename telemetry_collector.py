@@ -30,7 +30,7 @@ from datetime import datetime
 # Config
 # ------------------------------
 DIAGNOSTIC = True   # True prints sizes/offsets to verify memory layout
-TELEMETRY_DIR = "TELEMETRY"
+TELEMETRY_DIR = "data/raw"
 READ_INTERVAL = 0.1  # seconds between reads
 
 # ------------------------------
