@@ -1,0 +1,9 @@
+# This file ensures the weights/ directory is tracked by Git
+#
+# This directory is used for:
+# - Trained machine learning models (sklearn, pytorch, tensorflow)
+# - Model checkpoints and saved states
+# - Feature scaling parameters (scalers, encoders)
+# - Neural network weights and architectures
+# - Cross-validation model artifacts
+# - Hyperparameter optimization results
