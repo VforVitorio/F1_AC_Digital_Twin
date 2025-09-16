@@ -19,6 +19,7 @@ This document outlines the comprehensive architecture and use cases for integrat
 ## 🎯 Project Overview
 
 The F1 AC Digital Twin project currently consists of:
+
 - **Telemetry Collection**: Real-time data collection from Assetto Corsa via shared memory
 - **Data Analysis**: Jupyter notebooks for exploratory data analysis (EDA)
 - **Visualization**: Circuit maps and performance analysis using Plotly
@@ -82,6 +83,7 @@ The F1 AC Digital Twin project currently consists of:
 ```
 
 **Benefits:**
+
 - **Distributed Experience Buffer**: Each worker contributes experiences asynchronously
 - **Model Synchronization**: Updated weights distributed to all workers
 - **Fault Tolerance**: Training continues if individual workers fail
@@ -123,6 +125,7 @@ The F1 AC Digital Twin project currently consists of:
 ```
 
 **Benefits:**
+
 - **Production Telemetry**: Monitor AI performance in real-time
 - **Performance Analytics**: Compare AI vs human drivers
 - **Anomaly Detection**: Identify when model behavior degrades
@@ -137,6 +140,7 @@ The F1 AC Digital Twin project currently consists of:
 From the existing notebooks, we identified these key visualizations:
 
 **circuit_telemetry_analysis.ipynb:**
+
 - Circuit map with speed overlay
 - Steering analysis on track layout
 - Throttle/Brake combined visualization
@@ -145,6 +149,7 @@ From the existing notebooks, we identified these key visualizations:
 - Surface grip analysis
 
 **lap_telemetry_exploration.ipynb:**
+
 - Lap-by-lap comparisons
 - Sector analysis
 - Performance metrics
@@ -196,7 +201,7 @@ From the existing notebooks, we identified these key visualizations:
     "data": {
       "timestamp": "unix_timestamp",
       "speed_kmh": "float",
-      "rpm": "int", 
+      "rpm": "int",
       "throttle": "float",
       "brake": "float",
       "steering": "float",
@@ -207,11 +212,11 @@ From the existing notebooks, we identified these key visualizations:
       "sector": "int"
     }
   },
-  
+
   "ac-lap-events": {
     "description": "Lap completion events",
     "frequency": "Per lap (~1-2 min)",
-    "retention": "24 hours", 
+    "retention": "24 hours",
     "data": {
       "lap_number": "int",
       "lap_time_ms": "int",
@@ -220,14 +225,14 @@ From the existing notebooks, we identified these key visualizations:
       "distance_total": "float"
     }
   },
-  
+
   "ac-session-stats": {
     "description": "Aggregated statistics",
     "frequency": "5 seconds",
     "retention": "6 hours",
     "data": {
       "avg_speed": "float",
-      "max_speed": "float", 
+      "max_speed": "float",
       "total_distance": "float",
       "current_lap": "int",
       "session_time": "int"
@@ -245,13 +250,13 @@ st.title("🏎️ F1 AC Digital Twin - Live Telemetry")
 # Row 1: Key Metrics
 col1, col2, col3, col4 = st.columns(4)
 with col1: st.metric("Speed", f"{current_speed:.1f} km/h")
-with col2: st.metric("RPM", f"{current_rpm}")  
+with col2: st.metric("RPM", f"{current_rpm}")
 with col3: st.metric("Lap", f"{current_lap}")
 with col4: st.metric("Best Lap", f"{best_lap_time}")
 
 # Row 2: Circuit map + car position
 col1, col2 = st.columns([2, 1])
-with col1: 
+with col1:
     # Circuit map with speed trail + live car position
     st.plotly_chart(live_circuit_map)
 with col2:
@@ -263,8 +268,8 @@ col1, col2 = st.columns(2)
 with col1:
     # Speed + Throttle/Brake vs time
     st.plotly_chart(speed_time_chart)
-with col2: 
-    # Steering + G-forces vs time  
+with col2:
+    # Steering + G-forces vs time
     st.plotly_chart(steering_time_chart)
 
 # Row 4: Sector analysis
@@ -275,28 +280,28 @@ st.plotly_chart(sector_analysis_chart)
 
 ## 💻 Implementation Examples
 
-### **Kafka Producer (Modified telemetry_collector.py)**
+### **Kafka Producer (Modified src/telemetry_collector.py)**
 
 ```python
 from kafka import KafkaProducer
 import json
 
-# Add to telemetry_collector.py
+# Add to src/telemetry_collector.py
 class TelemetryKafkaProducer:
     def __init__(self, bootstrap_servers=['localhost:9092']):
         self.producer = KafkaProducer(
             bootstrap_servers=bootstrap_servers,
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
         )
-    
+
     def send_telemetry(self, telemetry_data):
         # Send to live telemetry topic
         self.producer.send('ac-telemetry-live', telemetry_data)
-        
+
     def send_lap_event(self, lap_data):
         # Send to lap events topic
         self.producer.send('ac-lap-events', lap_data)
-        
+
     def send_session_stats(self, stats_data):
         # Send to session statistics topic
         self.producer.send('ac-session-stats', stats_data)
@@ -306,7 +311,7 @@ kafka_producer = TelemetryKafkaProducer()
 
 while True:
     # ... existing telemetry collection code ...
-    
+
     # Prepare Kafka message
     telemetry_message = {
         "timestamp": int(time.time()),
@@ -321,10 +326,10 @@ while True:
         "distance": round(data_g.distanceTraveled, 3),
         "sector": data_g.currentSectorIndex
     }
-    
+
     # Send to Kafka
     kafka_producer.send_telemetry(telemetry_message)
-    
+
     # ... rest of existing code ...
 ```
 
@@ -344,26 +349,26 @@ class TelemetryDashboard:
             bootstrap_servers=['localhost:9092'],
             value_deserializer=lambda m: json.loads(m.decode('utf-8'))
         )
-        
+
         # Buffer for real-time data
         self.telemetry_buffer = deque(maxlen=1000)  # Last 1000 points
-        
+
     def consume_telemetry(self):
         # Non-blocking consumer
         message_batch = self.consumer.poll(timeout_ms=100)
         for topic_partition, messages in message_batch.items():
             for message in messages:
                 self.telemetry_buffer.append(message.value)
-                
+
     def create_live_circuit_map(self):
         if not self.telemetry_buffer:
             return go.Figure()
-            
+
         # Extract coordinates and speeds
         x_coords = [point['car_x'] for point in self.telemetry_buffer]
         z_coords = [point['car_z'] for point in self.telemetry_buffer]
         speeds = [point['speed_kmh'] for point in self.telemetry_buffer]
-        
+
         # Create speed-colored track
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -372,7 +377,7 @@ class TelemetryDashboard:
             marker=dict(color=speeds, colorscale='Viridis', size=4),
             name='Track'
         ))
-        
+
         # Add current car position
         if self.telemetry_buffer:
             current = self.telemetry_buffer[-1]
@@ -382,7 +387,7 @@ class TelemetryDashboard:
                 marker=dict(size=15, color='red', symbol='circle'),
                 name='Current Position'
             ))
-            
+
         return fig
 
 # Streamlit app
@@ -398,22 +403,22 @@ placeholder = st.empty()
 while True:
     # Consume new telemetry data
     dashboard.consume_telemetry()
-    
+
     # Update dashboard
     with placeholder.container():
         if dashboard.telemetry_buffer:
             current = dashboard.telemetry_buffer[-1]
-            
+
             # Metrics row
             col1, col2, col3, col4 = st.columns(4)
             with col1: st.metric("Speed", f"{current['speed_kmh']:.1f} km/h")
             with col2: st.metric("RPM", f"{current['rpm']}")
             with col3: st.metric("Gear", f"{current['gear']}")
             with col4: st.metric("Throttle", f"{current['throttle']:.2f}")
-            
+
             # Live circuit map
             st.plotly_chart(dashboard.create_live_circuit_map(), use_container_width=True)
-    
+
     # Refresh rate
     time.sleep(0.1)
 ```
@@ -423,21 +428,25 @@ while True:
 ## 🚀 Technical Benefits
 
 ### **1. Scalability**
+
 - **Horizontal scaling**: Add more AC instances without architectural changes
 - **High throughput**: Handle 100+ Hz telemetry from multiple sources
 - **Load distribution**: Distribute processing across multiple consumers
 
 ### **2. Reliability**
+
 - **Fault tolerance**: System continues if individual components fail
 - **Data persistence**: Telemetry preserved even if dashboard crashes
 - **Replay capability**: Historical data available for debugging and analysis
 
 ### **3. Flexibility**
+
 - **Multiple consumers**: Different dashboards can consume the same data
 - **Real-time and batch**: Support both live visualization and offline analysis
 - **Technology agnostic**: Easy to integrate with different tools and frameworks
 
 ### **4. Performance**
+
 - **Low latency**: Sub-second data propagation from AC to dashboard
 - **Efficient buffering**: Kafka handles backpressure and flow control
 - **Resource optimization**: Decoupled components can scale independently
@@ -447,26 +456,31 @@ while True:
 ## 🗓️ Future Roadmap
 
 ### **Phase 1: Current (No Kafka)**
+
 - EDA and feature engineering using CSV files
 - Behavioral Learning model training
 - Static visualization and analysis
 
 ### **Phase 2: Single-instance RL (Optional Kafka)**
+
 - AssettoCorsaGym integration
 - Single AC instance RL training
 - Basic real-time monitoring
 
 ### **Phase 3: Multi-instance RL (Kafka Essential)**
+
 - Multiple AC workers for distributed training
 - Kafka-based experience sharing
 - Advanced model synchronization
 
 ### **Phase 4: Production Deployment (Kafka Essential)**
+
 - Trained model in live racing scenarios
 - Real-time performance monitoring
 - Continuous learning and model updates
 
 ### **Phase 5: Advanced Analytics (Kafka Enhanced)**
+
 - Multi-session comparative analysis
 - Anomaly detection and alerting
 - Machine learning-driven insights

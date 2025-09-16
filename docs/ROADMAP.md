@@ -161,7 +161,7 @@ Each row represents the car state and the action performed by the AI or human dr
 - [ ] AssettoCorsaGym plugin installation and configuration
 - [ ] Shared memory reading implementation
 - [ ] Telemetry field decoding
-- [ ] Real-time data collection system
+- [x] Real-time data collection system
 - [ ] Data validation and cleaning
 
 ### Phase 2: Behavior Cloning

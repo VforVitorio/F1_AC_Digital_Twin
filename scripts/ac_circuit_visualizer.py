@@ -10,7 +10,7 @@ warnings.filterwarnings('ignore')
 
 
 class ACTelemetryVisualizer:
-    def __init__(self, csv_file='data/raw/LAPS_OUTPUT/lap_2_telemetry_2025-09-13_16-18-26.csv'):
+    def __init__(self, csv_file='../data/raw/LAPS_OUTPUT/lap_2_telemetry_2025-09-13_16-18-26.csv'):
         self.csv_file = csv_file
         self.df = None
         self.track_x = None
