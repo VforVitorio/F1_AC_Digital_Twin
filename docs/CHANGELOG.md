@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased][Unreleased]
 
+---
+
+## [1.5.0][1.5.0] - 2025-09-16
+
+### Added
+
+- **Comprehensive EDA Planning for Behavioral Learning**: Complete roadmap for ML model development
+  - **EDA Planning Document**: Created `docs/EDA_PLANNING_BL_RL.md` with 11-section comprehensive analysis strategy
+  - **BL→RL Transfer Learning Strategy**: Detailed planning for Behavioral Learning foundation with Reinforcement Learning progression
+  - **Variable Classification System**: Clear separation between GAME_INPUTS, GAME_ACTIONS, and RL_INTERNAL_STATE variables
+  - **4-Hour Implementation Roadmap**: Step-by-step analysis plan from data loading through transfer learning preparation
+  - **N03 EDA Notebook**: Created `data-analytics/N03_comprehensive_eda.ipynb` with professional objective documentation
+  - **AI Strategy Clarification**: Focused approach on learning from Assetto Corsa's built-in AI rather than human drivers
+
+### Enhanced
+
+- **Notebook Organization System**: Implemented chronological naming convention for better project structure
+  - **N01 Prefix**: Renamed `circuit_telemetry_analysis.ipynb` → `N01_circuit_telemetry_analysis.ipynb`
+  - **N02 Prefix**: Renamed `lap_telemetry_exploration.ipynb` → `N02_lap_telemetry_exploration.ipynb`
+  - **N03 Addition**: Created `N03_comprehensive_eda.ipynb` for ML-focused analysis
+  - **Sequential Analysis Flow**: Clear progression from circuit analysis → lap exploration → ML preparation
+
+### Improved
+
+- **Cross-Platform Compatibility**: Enhanced path handling for Windows/Linux/macOS compatibility
+  - **Dynamic Path Resolution**: Updated both Python scripts with `os.path.join()` for cross-platform file paths
+  - **Telemetry Collector**: Implemented dynamic `TELEMETRY_DIR` configuration using project root detection
+  - **Circuit Visualizer**: Added robust CSV file path resolution with `__file__` detection and fallbacks
+  - **Notebook Path Updates**: Updated N02 notebook with cross-platform path handling for data loading and export
+  - **Zero Platform Dependencies**: All file operations now work consistently across operating systems
+
 ### Changed
 
 - **Project Structure Reorganization**: Improved code organization following best practices
@@ -15,6 +46,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - **Robust Path Handling**: Implemented dynamic path resolution using `os.path` for both scripts to work from any execution directory
   - **Documentation**: Updated references in `kafka_integration_architecture.md` to reflect new file locations
   - **Rationale**: Separates core functionality (`src/`) from analysis utilities (`scripts/`) for better maintainability and scalability as the project grows
+
+### Documentation
+
+- **ML Strategy Documentation**: Comprehensive planning for Behavioral Learning development
+  - **Data Source Justification**: Clear rationale for using AC's built-in AI as training baseline
+  - **Transfer Learning Architecture**: Detailed strategy for BL→RL progression with shared game interface
+  - **Feature Engineering Planning**: Systematic approach to variable selection and preprocessing
+  - **Model Development Roadmap**: Professional ML development workflow with clear milestones
 
 ---
 
@@ -296,7 +335,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Outdated dependencies**: Cleaned up non-AI training related model references (XGBoost, TCN, YOLOv8 in generic context)
 - **Incompatible roadmap items**: Removed phases not aligned with autonomous driving objectives
 
-[Unreleased]: https://github.com/VforVitorio/F1_AC_Digital_Twin/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/VforVitorio/F1_AC_Digital_Twin/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.5.0
+[1.4.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.4.0
 [1.3.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.3.0
 [1.2.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.2.0
 [1.1.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.1.0
