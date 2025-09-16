@@ -30,7 +30,7 @@ from datetime import datetime
 # Config
 # ------------------------------
 DIAGNOSTIC = True   # True prints sizes/offsets to verify memory layout
-# Construir ruta dinámica al directorio de datos
+# Build dynamic path to data directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 TELEMETRY_DIR = os.path.join(project_root, 'data', 'raw')
