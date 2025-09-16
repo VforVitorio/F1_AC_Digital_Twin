@@ -6,11 +6,17 @@ from matplotlib.patches import Circle
 from matplotlib.collections import LineCollection
 import warnings
 from matplotlib.lines import Line2D
+import os
 warnings.filterwarnings('ignore')
 
 
 class ACTelemetryVisualizer:
-    def __init__(self, csv_file='../data/raw/LAPS_OUTPUT/lap_2_telemetry_2025-09-13_16-18-26.csv'):
+    def __init__(self, csv_file=None):
+        if csv_file is None:
+            # Construir ruta relativa al directorio del script
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(script_dir)
+            csv_file = os.path.join(project_root, 'data', 'raw', 'LAPS_OUTPUT', 'lap_2_telemetry_2025-09-13_16-18-26.csv')
         self.csv_file = csv_file
         self.df = None
         self.track_x = None

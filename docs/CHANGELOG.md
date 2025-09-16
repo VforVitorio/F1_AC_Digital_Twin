@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Project Structure Reorganization**: Improved code organization following best practices
   - **Core Components**: Moved `telemetry_collector.py` to `src/` directory as main data collection engine
   - **Analysis Tools**: Moved `ac_circuit_visualizer.py` to `scripts/` directory as analysis utility
-  - **Path Updates**: Updated all relative paths in moved files to maintain data access functionality
+  - **Robust Path Handling**: Implemented dynamic path resolution using `os.path` for both scripts to work from any execution directory
   - **Documentation**: Updated references in `kafka_integration_architecture.md` to reflect new file locations
   - **Rationale**: Separates core functionality (`src/`) from analysis utilities (`scripts/`) for better maintainability and scalability as the project grows
 
