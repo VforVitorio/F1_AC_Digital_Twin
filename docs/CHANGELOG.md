@@ -9,6 +9,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.6.0][1.6.0] - 2025-09-20
+
+### Added
+
+- **Complete Comprehensive EDA Implementation**: Full exploratory data analysis with data cleaning pipeline
+  - **Data Quality Assessment**: Comprehensive null value detection, data type analysis, and statistical profiling
+  - **Categorical Variable Elimination**: Automated removal of uninformative string and boolean columns
+  - **Constant Variable Detection**: Identification and removal of columns with no variability (LapNumberTotal, Flag, SurfaceGrip)
+  - **Correlation Matrix Analysis**: Visual correlation analysis with multicollinearity detection and elimination
+  - **Feature Selection Pipeline**: Systematic reduction from 23 to 11 optimized features for ML training
+  - **Clean Dataset Export**: Processed dataset exported to `data/processed/` ready for Behavioral Learning
+
+- **Playground Development Environment**: Safe experimentation space for project development
+  - **Playground Directory Structure**: Created `playground/` with README, .gitignore, and example scripts
+  - **Cross-Platform Script Templates**: Sample Python scripts with proper pathlib imports for experimentation
+  - **Kafka Producer Enhancement**: Updated telemetry streaming script with robust cross-platform path handling
+  - **Development Guidelines**: Clear documentation on playground usage and best practices
+
+- **Deep Learning Project Structure**: Organized directory structure for ML model development
+  - **BL-Models Directory**: Created `deep-learning/behavioral-learning/BL-models/` for Behavioral Learning checkpoints
+  - **RL-Models Directory**: Created `deep-learning/reinforcement-learning/RL-models/` for future RL development
+  - **Model Organization**: Clear separation between different deep learning approaches with dedicated checkpoint storage
+
+### Enhanced
+
+- **Cross-Platform Path Handling**: Improved compatibility across Windows/Linux/macOS systems
+  - **Pathlib Integration**: Updated all data loading with `Path` objects for cross-platform compatibility
+  - **Dynamic Root Detection**: Robust project root detection from notebook execution context
+  - **CSV Path Resolution**: Fixed telemetry data loading with proper relative path construction
+
+- **Data Preprocessing Pipeline**: Professional-grade data cleaning for ML readiness
+  - **Redundancy Elimination**: Removed perfectly correlated variables (Timestamp, CompletedLaps, DistanceTraveled variants)
+  - **Temporal Data Optimization**: Kept essential temporal sequencing (`iCurrentTime_ms`) while removing redundant timing data
+  - **Spatial Data Preservation**: Maintained 3D coordinates for position-aware learning while removing highly correlated sector indices
+  - **Target Variable Identification**: Clear specification of control outputs (Throttle, Brake, Steering, Gear) for BL model training
+
+### Fixed
+
+- **Telemetry Data Path Issues**: Resolved CSV loading problems with robust path construction
+  - **LapNumberTotal Understanding**: Clarified that constant 0 values represent session configuration, not current lap
+  - **Data Export Correction**: Fixed dataset export to use fully processed `final_df` instead of partially cleaned data
+  - **Feature Count Accuracy**: Corrected final dataset to 11 optimized features after complete preprocessing
+
+### Documentation
+
+- **EDA Conclusions Section**: Comprehensive analysis summary and future roadmap
+  - **Data Quality Summary**: Complete assessment of dataset readiness for ML training
+  - **Processing Rationale**: Detailed justification for each data cleaning decision
+  - **Next Steps Planning**: Clear roadmap for Behavioral Learning model development
+  - **Architecture Recommendations**: Guidance on deep learning project structure organization
+
+---
+
 ## [1.5.0][1.5.0] - 2025-09-16
 
 ### Added
