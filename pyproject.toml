@@ -6,8 +6,8 @@ readme = "README.md"
 requires-python = "~=3.11.0"
 license = {text = "MIT"}
 authors = [
-    {name = "Víctor Vega Sobral", email = "victorvegasobral@yahoo.com"},
-    {name = "Santiago Souto Ortega", email = "soutoortegasantiago@gmail.com"}
+    {name = "Víctor Vega Sobral", url = "https://www.linkedin.com/in/victorvegasobral/"},
+    {name = "Santiago Souto Ortega", url = "https://www.linkedin.com/in/santiagosoutoortega/" }
 ]
 keywords = [
     "F1",
