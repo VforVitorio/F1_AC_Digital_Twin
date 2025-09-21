@@ -1,0 +1,44 @@
+[project]
+name = "F1_AC_DIGITAL_TWIN"
+version = "0.1.0"
+description = "A F1 digital twin trained through BL and RL for Asseto Corsa"
+readme = "README.md"
+requires-python = "~=3.11.0"
+license = {text = "MIT"}
+authors = [
+    {name = "Víctor Vega Sobral", email = "victorvegasobral@yahoo.com"},
+    {name = "Santiago Souto Ortega", email = "soutoortegasantiago@gmail.com"}
+]
+keywords = [
+    "F1",
+    "AI",
+    "Digital Twin",
+    "RL"
+
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Topic :: Games/Entertainment :: Simulation",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "pandas",
+    "numpy",
+    "matplotlib",
+    "ipython",
+    "ipykernel",
+    "plotly",
+    "nbformat",
+    "ipywidgets",
+]
+
+[project.urls]
+Homepage = "https://github.com/VforVitorio/F1_AC_Digital_Twin"
+Repository = "https://github.com/VforVitorio/F1_AC_Digital_Twin"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
