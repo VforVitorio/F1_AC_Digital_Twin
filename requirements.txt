@@ -1,8 +1,0 @@
-pandas
-numpy
-matplotlib
-ipython
-ipykernel
-plotly
-nbformat
-ipywidgets
