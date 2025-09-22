@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: 'F1 Telemetry Dashboards'
+    orgId: 1
+    folder: 'F1 Digital Twin'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
