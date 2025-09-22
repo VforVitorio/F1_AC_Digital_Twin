@@ -16,53 +16,67 @@ import time
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient, NewTopic
 
-# Configuration - All constants centralized for easy modification
-CSV_FILE = 'data/raw/LAPS_OUTPUT/lap_1_data.csv'      # Real telemetry data from Assetto Corsa
+# Configuration - Updated to use lap_1_data.csv
+CSV_FILE = 'data/raw/LAPS_OUTPUT/lap_1_data.csv'      # Original lap data with all columns
 KAFKA_TOPIC = 'f1-telemetry'                          # Specialized channel for F1 data only
 KAFKA_SERVERS = 'localhost:9092'                      # Address of our Kafka broker
-DEMO_ROWS = 930                                       # First n rows of the csv provided
-# 10 messages per second (simulates 10Hz real telemetry)
-STREAM_DELAY = 0.1
+DEMO_ROWS = 814                                        # Process all available rows (full lap)
+STREAM_DELAY = 0.1 
 
 
 def load_and_examine_data():
     """
     Task 2.1: Load CSV and examine telemetry structure
-
-    This function prepares real F1 telemetry data instead of simulated sensors.
-    Uses real metrics captured from Assetto Corsa: speed, RPM, throttle, brake, 
-    gear and lap number. This gives us a realistic dataset for streaming.
+    Updated for lap_1_data.csv with original column names
     """
-    print("📊 Task 2.1: Loading telemetry data...")
+    print("📊 Task 2.1: Loading lap 1 telemetry data...")
 
-    # Load telemetry CSV file - Real data from F1 AC Digital Twin project
-    df = pd.read_csv(CSV_FILE)
+    try:
+        # Load lap 1 telemetry CSV file
+        df = pd.read_csv(CSV_FILE)
 
-    # Display structure information for verification
-    print("Available columns:")
-    print(df.columns.tolist())
-    print(f"\nTotal rows: {len(df)}")
-    print("\nFirst 5 rows:")
-    print(df.head())
+        # Display structure information for verification
+        print("Available columns:")
+        print(df.columns.tolist())
+        print(f"\nTotal rows: {len(df)}")
+        print("\nFirst 5 rows:")
+        print(df.head())
 
-    # Select relevant fields for streaming - Core F1 metrics only
-    selected_fields = ['Speed_kmh', 'RPM',
-                       'Throttle', 'Brake', 'Gear', 'CompletedLaps']
+        # Field mapping for lap_1_data.csv (original column names)
+        selected_fields = [
+            'Distance', 'Timestamp', 'Speed_kmh', 'RPM', 'Throttle', 'Brake', 'Steering', 'Gear',
+            'CompletedLaps', 'iCurrentTime_ms', 'CurrentLapTime_str', 'iLastTime_ms', 'iBestTime_ms',
+            'LapNumberTotal', 'CurrentSectorIndex', 'LastSectorTime_ms', 'IsInPit', 'IsInPitLane',
+            'TyreCompound', 'X', 'Y', 'Z', 'Flag', 'SurfaceGrip'
+        ]
 
-    # Verify all required fields exist in CSV
-    missing_fields = [
-        field for field in selected_fields if field not in df.columns]
-    if missing_fields:
-        print(f"⚠️ Missing fields: {missing_fields}")
+        # Verify all required fields exist in CSV
+        available_fields = [field for field in selected_fields if field in df.columns]
+        missing_fields = [field for field in selected_fields if field not in df.columns]
+        
+        if missing_fields:
+            print(f"⚠️ Missing fields: {missing_fields}")
+            print(f"✅ Available fields: {available_fields}")
+            # Use only available fields
+            selected_fields = available_fields
+        else:
+            print("✅ All required fields are available")
+
+        # Show sample of selected data for validation
+        print(f"\nSelected fields sample:")
+        print(df[selected_fields].head())
+
+        return df, selected_fields
+
+    except FileNotFoundError:
+        print(f"❌ CSV file not found: {CSV_FILE}")
+        print("Available options:")
+        print("  - data/raw/LAPS_OUTPUT/lap_1_data.csv")
+        print("  - data/raw/LAPS_OUTPUT/lap_2_telemetry_2025-09-13_16-18-26.csv")
         return None, None
-    else:
-        print("✅ All required fields are available")
-
-    # Show sample of selected data for validation
-    print(f"\nSelected fields sample:")
-    print(df[selected_fields].head())
-
-    return df, selected_fields
+    except Exception as e:
+        print(f"❌ Error loading CSV: {e}")
+        return None, None
 
 
 def setup_kafka_topic():
@@ -111,54 +125,71 @@ def configure_producer():
 def stream_telemetry_data(df, selected_fields, producer):
     """
     Task 2.3: Stream telemetry data to Kafka
-
-    This demonstrates the core Producer → Broker → Topic flow:
-    1. Convert CSV row to JSON dictionary (structured telemetry message)
-    2. Send to Kafka topic using producer.produce()  
-    3. Broker stores message in 'f1-telemetry' topic
-    4. Messages wait there until consumers read them
-
-    Each message represents one telemetry snapshot with F1 metrics.
+    Updated to use lap_1_data.csv with original field names
     """
     print(f"🚀 Task 2.3: Starting telemetry streaming...")
 
-    # Use only first rows for demo - simulates real-time data capture
+    # Use all rows or limit to DEMO_ROWS
     demo_data = df[selected_fields].head(DEMO_ROWS)
 
     print(f"Streaming {len(demo_data)} telemetry records...")
 
     for index, row in demo_data.iterrows():
         # Convert CSV row to structured JSON message
-        # This mimics real telemetry: speed, RPM, driver inputs (throttle/brake/gear), lap info
+        # Using original column names from lap_1_data.csv
         telemetry_data = {
-            'speed': float(row['Speed_kmh']),      # Vehicle speed in km/h
-            'rpm': int(row['RPM']),                # Engine RPM
-            'throttle': float(row['Throttle']),    # Throttle input (0.0-1.0)
-            'brake': float(row['Brake']),          # Brake input (0.0-1.0)
-            'gear': int(row['Gear']),              # Current gear
-            'lap': int(row['CompletedLaps'])       # Lap number
+            # Core telemetry fields (original names)
+            'distance': float(row.get('Distance', 0)),            # Track distance
+            'timestamp': int(row.get('Timestamp', 0)),            # Unix timestamp
+            'speed_kmh': float(row.get('Speed_kmh', 0)),          # Speed in km/h
+            'rpm': int(row.get('RPM', 0)),                        # Engine RPM
+            'throttle': float(row.get('Throttle', 0)),            # Throttle input (0.0-1.0)
+            'brake': float(row.get('Brake', 0)),                  # Brake input (0.0-1.0)
+            'steering': float(row.get('Steering', 0)),            # Steering input
+            'gear': int(row.get('Gear', 0)),                      # Current gear
+            
+            # Lap and timing information
+            'completed_laps': int(row.get('CompletedLaps', 0)),
+            'current_time_ms': int(row.get('iCurrentTime_ms', 0)),
+            'current_lap_time': str(row.get('CurrentLapTime_str', '0:00.000')),
+            'last_time_ms': int(row.get('iLastTime_ms', 0)),
+            'best_time_ms': int(row.get('iBestTime_ms', 0)),
+            'lap_number_total': int(row.get('LapNumberTotal', 0)),
+            'current_sector_index': int(row.get('CurrentSectorIndex', 0)),
+            'last_sector_time_ms': int(row.get('LastSectorTime_ms', 0)),
+            
+            # Position and environment
+            'car_x': float(row.get('X', 0)),                      # X position
+            'car_y': float(row.get('Y', 0)),                      # Y position  
+            'car_z': float(row.get('Z', 0)),                      # Z position
+            'is_in_pit': bool(row.get('IsInPit', False)),
+            'is_in_pit_lane': bool(row.get('IsInPitLane', False)),
+            'tyre_compound': str(row.get('TyreCompound', 'Unknown')),
+            'flag': int(row.get('Flag', 0)),
+            'surface_grip': float(row.get('SurfaceGrip', 1.0)),
+            
+            # Additional timestamp for compatibility
+            'kafka_timestamp': int(time.time() * 1000)           # Current timestamp
         }
 
         # CORE KAFKA OPERATION: Send message to broker
-        # - Topic: 'f1-telemetry' (destination channel)
-        # - Value: JSON-serialized telemetry data
-        # - Callback: Confirms successful delivery
         producer.produce(
             KAFKA_TOPIC,                           # Destination topic
             value=json.dumps(telemetry_data).encode('utf-8'),  # JSON message
             callback=delivery_callback             # Delivery confirmation
         )
 
-        # Show real-time progress - demonstrates streaming nature
-        print(f"📡 {index+1}/{DEMO_ROWS} - Speed: {telemetry_data['speed']:.1f}km/h, "
+        # Show real-time progress with key metrics
+        print(f"📡 {index+1}/{DEMO_ROWS} - Speed: {telemetry_data['speed_kmh']:.1f}km/h, "
               f"RPM: {telemetry_data['rpm']}, Gear: {telemetry_data['gear']}, "
-              f"Lap: {telemetry_data['lap']}")
+              f"Steering: {telemetry_data['steering']:.3f}, "
+              f"Distance: {telemetry_data['distance']:.1f}m, "
+              f"Lap: {telemetry_data['completed_laps']}")
 
         # Poll for delivery reports (async confirmation handling)
         producer.poll(0)
 
-        # Simulate real-time streaming frequency (10Hz = 10 messages/second)
-        # Real F1 telemetry often runs at 50-100Hz, we use 10Hz for demo clarity
+        # Simulate real-time streaming frequency
         time.sleep(STREAM_DELAY)
 
     # Ensure all messages are delivered before finishing
@@ -185,22 +216,22 @@ def main():
     Main execution function - Demonstrates complete Producer workflow
 
     TERMINAL OUTPUT EXPLANATION:
-    - Task 2.1: Loads and verifies CSV telemetry data  
+    - Task 2.1: Loads and verifies CSV telemetry data from lap_1_data.csv
     - Task 2.2: Creates topic and configures producer
-    - Task 2.3: Streams 50 messages at 10Hz simulating real telemetry
+    - Task 2.3: Streams all 814 messages with complete telemetry data
 
-    Each 📡 line shows a message sent to broker with real F1 metrics:
-    Speed progression (89km/h → 245km/h) demonstrates real AC data streaming.
-    This establishes the foundation for future AI analysis and training.
+    Each 📡 line shows a message sent to broker with real F1 metrics including:
+    Speed, RPM, Gear, Steering, Distance, and Lap information from original AC data.
+    This provides comprehensive telemetry for AI analysis and training.
     """
     print("=" * 60)
     print("F1 AC DIGITAL TWIN - KAFKA TELEMETRY PRODUCER")
-    print("HANDS-ON 1: Tasks 2.1, 2.2, 2.3")
+    print("HANDS-ON 1: Tasks 2.1, 2.2, 2.3 (Using lap_1_data.csv)")
     print("=" * 60)
 
     try:
         # Task 2.1: Load and examine data
-        # Prepares real F1 telemetry from Assetto Corsa for streaming
+        # Prepares real F1 telemetry from Assetto Corsa lap_1_data.csv
         df, selected_fields = load_and_examine_data()
         if df is None:
             print("❌ Failed to load data. Check CSV file path.")
@@ -216,22 +247,23 @@ def main():
         print("\n" + "-" * 40)
 
         # Task 2.3: Stream data
-        # Demonstrates Producer→Broker→Topic flow with real F1 data
+        # Demonstrates Producer→Broker→Topic flow with complete F1 data
         stream_telemetry_data(df, selected_fields, producer)
 
         print("\n" + "=" * 60)
         print("🏁 PRODUCER TASKS COMPLETED SUCCESSFULLY")
         print("🔍 CHECK CONFLUENT CONTROL CENTER: http://localhost:9021")
         print("📍 Navigate to: Topics → f1-telemetry → Messages")
-        print("📊 You should see 50 JSON telemetry messages")
+        print(f"📊 Complete lap data streamed: {DEMO_ROWS} telemetry records")
+        print("📈 Data includes: Speed, RPM, Position, Timing, and Environmental data")
         print("=" * 60)
 
     except Exception as e:
         print(f"❌ Error: {e}")
         print("Make sure:")
-        print("- CSV file 'lap_2_telemetry.csv' exists in current directory")
+        print("- CSV file 'lap_1_data.csv' exists in data/raw/LAPS_OUTPUT/")
         print("- Kafka is running (docker-compose up)")
-        print("- Required packages installed: pip install confluent-kafka pandas")
+        print("- Required packages installed")
 
 
 if __name__ == "__main__":
