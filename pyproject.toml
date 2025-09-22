@@ -6,8 +6,8 @@ readme = "README.md"
 requires-python = "~=3.11.0"
 license = {text = "MIT"}
 authors = [
-    {name = "Víctor Vega Sobral", url = "https://www.linkedin.com/in/victorvegasobral/"},
-    {name = "Santiago Souto Ortega", url = "https://www.linkedin.com/in/santiagosoutoortega/" }
+    {name = "Víctor Vega Sobral"},
+    {name = "Santiago Souto Ortega"}
 ]
 keywords = [
     "F1",
@@ -33,11 +33,15 @@ dependencies = [
     "plotly",
     "nbformat",
     "ipywidgets",
+    "confluent-kafka",
+    "influxdb-client"
 ]
 
 [project.urls]
 Homepage = "https://github.com/VforVitorio/F1_AC_Digital_Twin"
 Repository = "https://github.com/VforVitorio/F1_AC_Digital_Twin"
+"Víctor's LinkedIn" = "https://www.linkedin.com/in/victorvegasobral/"
+"Santiago's LinkedIn" = "https://www.linkedin.com/in/santiagosoutoortega/"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
