@@ -17,10 +17,10 @@ from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient, NewTopic
 
 # Configuration - All constants centralized for easy modification
-CSV_FILE = 'lap_2_telemetry.csv'      # Real telemetry data from Assetto Corsa
-KAFKA_TOPIC = 'f1-telemetry'          # Specialized channel for F1 data only
-KAFKA_SERVERS = 'localhost:9092'      # Address of our Kafka broker
-DEMO_ROWS = 50                        # Only first 50 rows for demo
+CSV_FILE = 'data/raw/LAPS_OUTPUT/lap_1_data.csv'      # Real telemetry data from Assetto Corsa
+KAFKA_TOPIC = 'f1-telemetry'                          # Specialized channel for F1 data only
+KAFKA_SERVERS = 'localhost:9092'                      # Address of our Kafka broker
+DEMO_ROWS = 930                                       # First n rows of the csv provided
 # 10 messages per second (simulates 10Hz real telemetry)
 STREAM_DELAY = 0.1
 
