@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
+  "id": 4,
   "links": [],
   "panels": [
     {
@@ -87,7 +87,7 @@
         "x": 0,
         "y": 0
       },
-      "id": 4,
+      "id": 3,
       "options": {
         "legend": {
           "calcs": [],
@@ -104,10 +104,11 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
+          "query": "from(bucket: \"f1-telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"f1_telemetry\")\n  |> filter(fn: (r) => r[\"_field\"] == \"gear\")",
           "refId": "A"
         }
       ],
-      "title": "New panel",
+      "title": "Gears",
       "type": "timeseries"
     },
     {
@@ -172,11 +173,11 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
+        "w": 11,
+        "x": 12,
+        "y": 0
       },
-      "id": 3,
+      "id": 4,
       "options": {
         "legend": {
           "calcs": [],
@@ -193,11 +194,11 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
-          "query": "from(bucket: \"f1-telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"f1_telemetry\")\n  |> filter(fn: (r) => r[\"_field\"] == \"gear\")",
+          "query": "from(bucket: \"f1-telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"f1_telemetry\")\n  |> filter(fn: (r) => r[\"_field\"] == \"speed_kmh\")",
           "refId": "A"
         }
       ],
-      "title": "New panel",
+      "title": "Speed",
       "type": "timeseries"
     },
     {
@@ -231,7 +232,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 8
       },
       "id": 2,
       "options": {
@@ -256,7 +257,7 @@
           "refId": "A"
         }
       ],
-      "title": "New panel",
+      "title": "RPM",
       "type": "gauge"
     },
     {
@@ -305,8 +306,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 0,
-        "y": 24
+        "x": 12,
+        "y": 8
       },
       "id": 1,
       "options": {
@@ -343,7 +344,7 @@
           "refId": "B"
         }
       ],
-      "title": "New panel",
+      "title": "Speed",
       "type": "gauge"
     }
   ],
@@ -362,5 +363,5 @@
   "timezone": "browser",
   "title": "New dashboard Copy",
   "uid": "951b7117-a1e7-4a1e-a6ce-eb239841e3ad",
-  "version": 1
+  "version": 6
 }
