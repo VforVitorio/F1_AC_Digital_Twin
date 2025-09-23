@@ -349,7 +349,7 @@
     }
   ],
   "preload": false,
-  "refresh": "5s",
+  "refresh": "0.2s",
   "schemaVersion": 41,
   "tags": [],
   "templating": {
