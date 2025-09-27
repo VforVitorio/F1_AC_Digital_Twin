@@ -9,6 +9,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.7.0][1.7.0] - 2025-09-27
+
+### Added
+
+- **Behavioral Learning Data Split Pipeline**: Complete train/validation/test data preparation for TCN training
+  - **N00_BL_data_split.ipynb**: Professional notebook with comprehensive data splitting by lap_id to prevent data leakage
+  - **T-Parameter Selection**: Systematic analysis and selection of T=60 timesteps (6 seconds) for sliding window generation
+  - **Cross-Platform Data Loading**: Robust pathlib-based file loading with dynamic path resolution
+  - **Organized Directory Structure**: Automated creation of `BL-train-val-test/splits/figs/metadata/` directories
+
+- **Data Leakage Prevention**: Advanced splitting methodology ensuring temporal integrity
+  - **Lap-Based Splitting**: Division by complete laps (lap_id) rather than individual timesteps
+  - **Reproducible Splits**: SEED=42 ensuring consistent train(70%)/val(15%)/test(15%) splits across runs
+  - **Split Validation**: Comprehensive integrity checks for overlaps, completeness, and data quality
+  - **Statistical Analysis**: Per-split statistics including lap counts, durations, and speed profiles
+
+- **Professional Function Architecture**: Clean, documented, single-responsibility functions
+  - **extract_unique_lap_ids()**: Complete lap identification with statistical profiling
+  - **create_reproducible_splits()**: Lap-based random splitting with validation
+  - **create_split_dataframes()**: DataFrame generation from lap-based splits
+  - **save_split_files()**: CSV export with file size reporting and confirmation
+
+- **Comprehensive Documentation**: Domain knowledge integration and workflow guidance
+  - **T-Parameter Justification**: Speed and steering analysis supporting T=60 selection
+  - **TCN Architecture Preparation**: Clear explanation of sliding window usage for temporal modeling
+  - **Next Steps Integration**: Direct link to N01_BL_training.ipynb for seamless workflow continuation
+
+### Enhanced
+
+- **Data Processing Pipeline**: Streamlined approach eliminating unnecessary complexity
+  - **Simplified Workflow**: Reduced from complex maneuver detection to essential 4-step process
+  - **Metadata Elimination**: Removed JSON metadata generation focusing on core CSV outputs
+  - **Function Optimization**: Clean English-documented functions with single responsibilities
+  - **Error Handling**: Resolved JSON serialization issues and type compatibility problems
+
+### Fixed
+
+- **Column Name Standardization**: Corrected telemetry column references for consistent data access
+- **JSON Serialization**: Eliminated int64 type errors by removing metadata generation
+- **Process Simplification**: Streamlined from overly complex to essential functionality per user requirements
+
+---
+
 ## [1.6.0][1.6.0] - 2025-09-20
 
 ### Added
