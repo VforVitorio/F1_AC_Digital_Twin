@@ -14,18 +14,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - **Behavioral Learning Data Split Pipeline**: Complete train/validation/test data preparation for TCN training
+
   - **N00_BL_data_split.ipynb**: Professional notebook with comprehensive data splitting by lap_id to prevent data leakage
   - **T-Parameter Selection**: Systematic analysis and selection of T=60 timesteps (6 seconds) for sliding window generation
   - **Cross-Platform Data Loading**: Robust pathlib-based file loading with dynamic path resolution
   - **Organized Directory Structure**: Automated creation of `BL-train-val-test/splits/figs/metadata/` directories
 
 - **Data Leakage Prevention**: Advanced splitting methodology ensuring temporal integrity
+
   - **Lap-Based Splitting**: Division by complete laps (lap_id) rather than individual timesteps
   - **Reproducible Splits**: SEED=42 ensuring consistent train(70%)/val(15%)/test(15%) splits across runs
   - **Split Validation**: Comprehensive integrity checks for overlaps, completeness, and data quality
   - **Statistical Analysis**: Per-split statistics including lap counts, durations, and speed profiles
 
 - **Professional Function Architecture**: Clean, documented, single-responsibility functions
+
   - **extract_unique_lap_ids()**: Complete lap identification with statistical profiling
   - **create_reproducible_splits()**: Lap-based random splitting with validation
   - **create_split_dataframes()**: DataFrame generation from lap-based splits
@@ -57,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - **Complete Comprehensive EDA Implementation**: Full exploratory data analysis with data cleaning pipeline
+
   - **Data Quality Assessment**: Comprehensive null value detection, data type analysis, and statistical profiling
   - **Categorical Variable Elimination**: Automated removal of uninformative string and boolean columns
   - **Constant Variable Detection**: Identification and removal of columns with no variability (LapNumberTotal, Flag, SurfaceGrip)
@@ -65,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - **Clean Dataset Export**: Processed dataset exported to `data/processed/` ready for Behavioral Learning
 
 - **Playground Development Environment**: Safe experimentation space for project development
+
   - **Playground Directory Structure**: Created `playground/` with README, .gitignore, and example scripts
   - **Cross-Platform Script Templates**: Sample Python scripts with proper pathlib imports for experimentation
   - **Kafka Producer Enhancement**: Updated telemetry streaming script with robust cross-platform path handling
@@ -78,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Enhanced
 
 - **Cross-Platform Path Handling**: Improved compatibility across Windows/Linux/macOS systems
+
   - **Pathlib Integration**: Updated all data loading with `Path` objects for cross-platform compatibility
   - **Dynamic Root Detection**: Robust project root detection from notebook execution context
   - **CSV Path Resolution**: Fixed telemetry data loading with proper relative path construction
