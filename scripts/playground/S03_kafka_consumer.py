@@ -3,7 +3,7 @@ F1 AC Digital Twin - HANDS-ON 2
 Kafka to InfluxDB Consumer + Real-Time Telemetry Dashboard
 
 COMPLETE ARCHITECTURE:
-Producer (CSV) → Kafka Topic → Consumer → InfluxDB → Grafana Dashboard
+AC Shared Memory → Producer → Kafka Topic → Consumer → InfluxDB → Grafana Dashboard
 
 HANDS-ON 2 OBJECTIVES:
 ✓ Configure InfluxDB for time series data storage
@@ -16,6 +16,9 @@ TASKS:
 - Task 2.1: Setup InfluxDB connection and data model
 - Task 2.2: Create Kafka Consumer for real-time ingestion
 - Task 2.3: Configure Grafana datasource and dashboard
+
+NOTE: This consumer now works with LIVE telemetry data from Assetto Corsa
+streamed in real-time through the Kafka producer.
 """
 
 import json
@@ -30,8 +33,8 @@ KAFKA_TOPIC = 'f1-telemetry'
 CONSUMER_GROUP = 'f1-influxdb-consumer-handson2'
 
 INFLUX_URL = "http://localhost:8086"
-INFLUX_TOKEN = "f1-telemetry-token-super-secret"
-INFLUX_ORG = "f1-org"
+INFLUX_TOKEN = "CssdJRIZD9283JpDy71UEVIaOrqpY-lKOYX2h3jrtcS3NDt3bc-nXtiSGYirknZ8y32q2mOt1dNhQgpdRw2jzg=="
+INFLUX_ORG = "myorg"
 INFLUX_BUCKET = "f1-telemetry"
 
 
