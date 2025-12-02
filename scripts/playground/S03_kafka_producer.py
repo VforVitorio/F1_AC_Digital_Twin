@@ -16,13 +16,20 @@ import mmap
 import ctypes
 import signal
 import sys
+from pathlib import Path
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient, NewTopic
 
-# Configuration
-KAFKA_TOPIC = 'f1-telemetry'
-KAFKA_SERVERS = 'localhost:9092'
-READ_INTERVAL = 0.1  # 10Hz sampling rate
+# Add project root to path to import config
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+# Import configuration from centralized config
+from config import (
+    KAFKA_SERVERS,
+    KAFKA_TOPIC,
+    READ_INTERVAL
+)
 
 
 # Assetto Corsa Shared Memory Structures

@@ -23,19 +23,30 @@ streamed in real-time through the Kafka producer.
 
 import json
 import logging
+import sys
+from pathlib import Path
 from datetime import datetime, timezone
 from confluent_kafka import Consumer, KafkaError
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-KAFKA_SERVERS = 'localhost:9092'
-KAFKA_TOPIC = 'f1-telemetry'
-CONSUMER_GROUP = 'f1-influxdb-consumer-handson2'
+# Add project root to path to import config
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
 
-INFLUX_URL = "http://localhost:8086"
-INFLUX_TOKEN = "CssdJRIZD9283JpDy71UEVIaOrqpY-lKOYX2h3jrtcS3NDt3bc-nXtiSGYirknZ8y32q2mOt1dNhQgpdRw2jzg=="
-INFLUX_ORG = "myorg"
-INFLUX_BUCKET = "f1-telemetry"
+# Import configuration from centralized config
+from config import (
+    KAFKA_SERVERS,
+    KAFKA_TOPIC,
+    KAFKA_CONSUMER_GROUP,
+    INFLUX_URL,
+    INFLUX_TOKEN,
+    INFLUX_ORG,
+    INFLUX_BUCKET
+)
+
+# Use imported consumer group name
+CONSUMER_GROUP = KAFKA_CONSUMER_GROUP
 
 
 logging.basicConfig(
