@@ -1,0 +1,18 @@
+# F1 AC Digital Twin - Python Dependencies
+# Instalar con: pip install -r requirements.txt
+
+# Kafka - Streaming de datos en tiempo real
+confluent-kafka>=2.3.0
+
+# InfluxDB - Base de datos de series temporales
+influxdb-client>=1.38.0
+
+# Procesamiento de datos
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Utilidades
+python-dateutil>=2.8.2
+
+# Environment Variables
+python-dotenv>=1.0.0

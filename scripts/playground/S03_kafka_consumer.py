@@ -3,7 +3,7 @@ F1 AC Digital Twin - HANDS-ON 2
 Kafka to InfluxDB Consumer + Real-Time Telemetry Dashboard
 
 COMPLETE ARCHITECTURE:
-Producer (CSV) → Kafka Topic → Consumer → InfluxDB → Grafana Dashboard
+AC Shared Memory → Producer → Kafka Topic → Consumer → InfluxDB → Grafana Dashboard
 
 HANDS-ON 2 OBJECTIVES:
 ✓ Configure InfluxDB for time series data storage
@@ -16,23 +16,37 @@ TASKS:
 - Task 2.1: Setup InfluxDB connection and data model
 - Task 2.2: Create Kafka Consumer for real-time ingestion
 - Task 2.3: Configure Grafana datasource and dashboard
+
+NOTE: This consumer now works with LIVE telemetry data from Assetto Corsa
+streamed in real-time through the Kafka producer.
 """
 
 import json
 import logging
+import sys
+from pathlib import Path
 from datetime import datetime, timezone
 from confluent_kafka import Consumer, KafkaError
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-KAFKA_SERVERS = 'localhost:9092'
-KAFKA_TOPIC = 'f1-telemetry'
-CONSUMER_GROUP = 'f1-influxdb-consumer-handson2'
+# Add project root to path to import config
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
 
-INFLUX_URL = "http://localhost:8086"
-INFLUX_TOKEN = "f1-telemetry-token-super-secret"
-INFLUX_ORG = "f1-org"
-INFLUX_BUCKET = "f1-telemetry"
+# Import configuration from centralized config
+from config import (
+    KAFKA_SERVERS,
+    KAFKA_TOPIC,
+    KAFKA_CONSUMER_GROUP,
+    INFLUX_URL,
+    INFLUX_TOKEN,
+    INFLUX_ORG,
+    INFLUX_BUCKET
+)
+
+# Use imported consumer group name
+CONSUMER_GROUP = KAFKA_CONSUMER_GROUP
 
 
 logging.basicConfig(
