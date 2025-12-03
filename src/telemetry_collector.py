@@ -42,7 +42,10 @@ READ_INTERVAL = 0.1  # seconds between reads
 
 
 class SPageFilePhysics(ctypes.Structure):
-    # use default alignment
+    """
+    Complete Assetto Corsa Physics Shared Memory Structure
+    Contains all real-time physics telemetry data from the simulation
+    """
     _fields_ = [
         ("packetId", ctypes.c_int),
         ("gas", ctypes.c_float),
@@ -52,6 +55,70 @@ class SPageFilePhysics(ctypes.Structure):
         ("rpms", ctypes.c_int),
         ("steerAngle", ctypes.c_float),
         ("speedKmh", ctypes.c_float),
+        ("velocity", ctypes.c_float * 3),           # Velocity vector [x, y, z] in m/s
+        ("accG", ctypes.c_float * 3),               # G-forces [x, y, z]
+        ("wheelSlip", ctypes.c_float * 4),          # Wheel slip for each tire [FL, FR, RL, RR]
+        ("wheelLoad", ctypes.c_float * 4),          # Load on each tire in Newtons
+        ("wheelsPressure", ctypes.c_float * 4),     # Tire pressure in PSI
+        ("wheelAngularSpeed", ctypes.c_float * 4),  # Angular speed of each wheel in rad/s
+        ("tyreWear", ctypes.c_float * 4),           # Tire wear level (0-100%)
+        ("tyreDirtyLevel", ctypes.c_float * 4),     # Dirt accumulated on tires
+        ("tyreCoreTemperature", ctypes.c_float * 4),# Core temperature of each tire in °C
+        ("camberRAD", ctypes.c_float * 4),          # Camber angle in radians
+        ("suspensionTravel", ctypes.c_float * 4),   # Suspension travel in meters
+        ("drs", ctypes.c_float),                    # DRS status (0 = off, 1 = on)
+        ("tc", ctypes.c_float),                     # Traction control level
+        ("heading", ctypes.c_float),                # Car heading angle
+        ("pitch", ctypes.c_float),                  # Car pitch angle
+        ("roll", ctypes.c_float),                   # Car roll angle
+        ("cgHeight", ctypes.c_float),               # Center of gravity height
+        ("carDamage", ctypes.c_float * 5),          # Damage levels [front, rear, left, right, center]
+        ("numberOfTyresOut", ctypes.c_int),         # Number of tires off track
+        ("pitLimiterOn", ctypes.c_int),             # Pit limiter status
+        ("abs", ctypes.c_float),                    # ABS activation level
+        ("kersCharge", ctypes.c_float),             # KERS/ERS charge level
+        ("kersInput", ctypes.c_float),              # KERS/ERS input
+        ("autoShifterOn", ctypes.c_int),            # Auto shifter enabled
+        ("rideHeight", ctypes.c_float * 2),         # Ride height [front, rear] in mm
+        ("turboBoost", ctypes.c_float),             # Turbo boost pressure
+        ("ballast", ctypes.c_float),                # Ballast weight in kg
+        ("airDensity", ctypes.c_float),             # Air density
+        ("airTemp", ctypes.c_float),                # Air temperature in °C
+        ("roadTemp", ctypes.c_float),               # Road temperature in °C
+        ("localAngularVel", ctypes.c_float * 3),    # Local angular velocity [x, y, z]
+        ("finalFF", ctypes.c_float),                # Final force feedback value
+        ("performanceMeter", ctypes.c_float),       # Performance meter value
+        ("engineBrake", ctypes.c_int),              # Engine brake setting
+        ("ersRecoveryLevel", ctypes.c_int),         # ERS recovery level
+        ("ersPowerLevel", ctypes.c_int),            # ERS power level
+        ("ersHeatCharging", ctypes.c_int),          # ERS heat charging
+        ("ersIsCharging", ctypes.c_int),            # ERS charging status
+        ("kersCurrentKJ", ctypes.c_float),          # Current KERS energy in kJ
+        ("drsAvailable", ctypes.c_int),             # DRS available flag
+        ("drsEnabled", ctypes.c_int),               # DRS enabled flag
+        ("brakeTemp", ctypes.c_float * 4),          # Brake temperature for each wheel in °C
+        ("clutch", ctypes.c_float),                 # Clutch position
+        ("tyreTempI", ctypes.c_float * 4),          # Tire inner temperature
+        ("tyreTempM", ctypes.c_float * 4),          # Tire middle temperature
+        ("tyreTempO", ctypes.c_float * 4),          # Tire outer temperature
+        ("isAIControlled", ctypes.c_int),           # AI controlled flag
+        ("tyreContactPoint", ctypes.c_float * 4 * 3),  # Contact point for each tire [x,y,z] * 4
+        ("tyreContactNormal", ctypes.c_float * 4 * 3), # Contact normal for each tire [x,y,z] * 4
+        ("tyreContactHeading", ctypes.c_float * 4 * 3),# Contact heading for each tire [x,y,z] * 4
+        ("brakeBias", ctypes.c_float),              # Brake bias (front/rear distribution)
+        ("localVelocity", ctypes.c_float * 3),      # Local velocity vector [x, y, z]
+        ("P2PActivations", ctypes.c_int),           # Push-to-pass activations remaining
+        ("P2PStatus", ctypes.c_int),                # Push-to-pass status
+        ("currentMaxRpm", ctypes.c_int),            # Current max RPM for current gear
+        ("mz", ctypes.c_float * 4),                 # Self-aligning torque for each tire
+        ("fx", ctypes.c_float * 4),                 # Longitudinal force for each tire
+        ("fy", ctypes.c_float * 4),                 # Lateral force for each tire
+        ("slipRatio", ctypes.c_float * 4),          # Slip ratio for each tire
+        ("slipAngle", ctypes.c_float * 4),          # Slip angle for each tire
+        ("tcinAction", ctypes.c_int),               # TC in action flag
+        ("absInAction", ctypes.c_int),              # ABS in action flag
+        ("suspensionDamage", ctypes.c_float * 4),   # Suspension damage for each corner
+        ("tyreTemp", ctypes.c_float * 4),           # Average tire temperature (combined I/M/O)
     ]
 
 
@@ -365,15 +432,180 @@ def main():
         # Extract car coordinates for positional analysis
         coords = tuple(data_g.carCoordinates)
 
-        # Build comprehensive telemetry record for this timestamp
-        records.append({
+        # Build comprehensive telemetry record for this timestamp with ALL available variables
+        record = {
+            # === TIMESTAMP ===
             "Timestamp": int(time.time()),
+
+            # === BASIC DRIVING INPUTS ===
             "Speed_kmh": round(data.speedKmh, 2),
             "RPM": data.rpms,
             "Throttle": round(data.gas, 2),
             "Brake": round(data.brake, 2),
+            "Clutch": round(data.clutch, 3),
             "Steering": round(data.steerAngle, 3),
             "Gear": gear,
+
+            # === VELOCITY VECTORS (m/s) ===
+            "Velocity_X": round(data.velocity[0], 3),
+            "Velocity_Y": round(data.velocity[1], 3),
+            "Velocity_Z": round(data.velocity[2], 3),
+            "LocalVelocity_X": round(data.localVelocity[0], 3),
+            "LocalVelocity_Y": round(data.localVelocity[1], 3),
+            "LocalVelocity_Z": round(data.localVelocity[2], 3),
+
+            # === G-FORCES ===
+            "AccG_Lateral": round(data.accG[0], 3),      # Side-to-side
+            "AccG_Vertical": round(data.accG[1], 3),     # Up-down
+            "AccG_Longitudinal": round(data.accG[2], 3), # Forward-backward
+
+            # === CAR ORIENTATION ===
+            "Heading": round(data.heading, 3),
+            "Pitch": round(data.pitch, 3),
+            "Roll": round(data.roll, 3),
+            "CG_Height": round(data.cgHeight, 3),
+
+            # === ANGULAR VELOCITY ===
+            "AngularVel_X": round(data.localAngularVel[0], 3),
+            "AngularVel_Y": round(data.localAngularVel[1], 3),
+            "AngularVel_Z": round(data.localAngularVel[2], 3),
+
+            # === TIRE DATA - FRONT LEFT (FL) ===
+            "TireTemp_FL_Inner": round(data.tyreTempI[0], 1),
+            "TireTemp_FL_Middle": round(data.tyreTempM[0], 1),
+            "TireTemp_FL_Outer": round(data.tyreTempO[0], 1),
+            "TireTemp_FL_Avg": round(data.tyreTemp[0], 1),
+            "TireTemp_FL_Core": round(data.tyreCoreTemperature[0], 1),
+            "TireWear_FL": round(data.tyreWear[0], 2),
+            "TireDirty_FL": round(data.tyreDirtyLevel[0], 3),
+            "TirePressure_FL": round(data.wheelsPressure[0], 2),
+            "TireLoad_FL": round(data.wheelLoad[0], 1),
+            "WheelSlip_FL": round(data.wheelSlip[0], 3),
+            "WheelAngularSpeed_FL": round(data.wheelAngularSpeed[0], 3),
+            "SlipRatio_FL": round(data.slipRatio[0], 3),
+            "SlipAngle_FL": round(data.slipAngle[0], 3),
+            "Camber_FL": round(data.camberRAD[0], 4),
+            "SuspensionTravel_FL": round(data.suspensionTravel[0], 4),
+            "SuspensionDamage_FL": round(data.suspensionDamage[0], 2),
+            "BrakeTemp_FL": round(data.brakeTemp[0], 1),
+            "Mz_FL": round(data.mz[0], 2),  # Self-aligning torque
+            "Fx_FL": round(data.fx[0], 2),  # Longitudinal force
+            "Fy_FL": round(data.fy[0], 2),  # Lateral force
+
+            # === TIRE DATA - FRONT RIGHT (FR) ===
+            "TireTemp_FR_Inner": round(data.tyreTempI[1], 1),
+            "TireTemp_FR_Middle": round(data.tyreTempM[1], 1),
+            "TireTemp_FR_Outer": round(data.tyreTempO[1], 1),
+            "TireTemp_FR_Avg": round(data.tyreTemp[1], 1),
+            "TireTemp_FR_Core": round(data.tyreCoreTemperature[1], 1),
+            "TireWear_FR": round(data.tyreWear[1], 2),
+            "TireDirty_FR": round(data.tyreDirtyLevel[1], 3),
+            "TirePressure_FR": round(data.wheelsPressure[1], 2),
+            "TireLoad_FR": round(data.wheelLoad[1], 1),
+            "WheelSlip_FR": round(data.wheelSlip[1], 3),
+            "WheelAngularSpeed_FR": round(data.wheelAngularSpeed[1], 3),
+            "SlipRatio_FR": round(data.slipRatio[1], 3),
+            "SlipAngle_FR": round(data.slipAngle[1], 3),
+            "Camber_FR": round(data.camberRAD[1], 4),
+            "SuspensionTravel_FR": round(data.suspensionTravel[1], 4),
+            "SuspensionDamage_FR": round(data.suspensionDamage[1], 2),
+            "BrakeTemp_FR": round(data.brakeTemp[1], 1),
+            "Mz_FR": round(data.mz[1], 2),
+            "Fx_FR": round(data.fx[1], 2),
+            "Fy_FR": round(data.fy[1], 2),
+
+            # === TIRE DATA - REAR LEFT (RL) ===
+            "TireTemp_RL_Inner": round(data.tyreTempI[2], 1),
+            "TireTemp_RL_Middle": round(data.tyreTempM[2], 1),
+            "TireTemp_RL_Outer": round(data.tyreTempO[2], 1),
+            "TireTemp_RL_Avg": round(data.tyreTemp[2], 1),
+            "TireTemp_RL_Core": round(data.tyreCoreTemperature[2], 1),
+            "TireWear_RL": round(data.tyreWear[2], 2),
+            "TireDirty_RL": round(data.tyreDirtyLevel[2], 3),
+            "TirePressure_RL": round(data.wheelsPressure[2], 2),
+            "TireLoad_RL": round(data.wheelLoad[2], 1),
+            "WheelSlip_RL": round(data.wheelSlip[2], 3),
+            "WheelAngularSpeed_RL": round(data.wheelAngularSpeed[2], 3),
+            "SlipRatio_RL": round(data.slipRatio[2], 3),
+            "SlipAngle_RL": round(data.slipAngle[2], 3),
+            "Camber_RL": round(data.camberRAD[2], 4),
+            "SuspensionTravel_RL": round(data.suspensionTravel[2], 4),
+            "SuspensionDamage_RL": round(data.suspensionDamage[2], 2),
+            "BrakeTemp_RL": round(data.brakeTemp[2], 1),
+            "Mz_RL": round(data.mz[2], 2),
+            "Fx_RL": round(data.fx[2], 2),
+            "Fy_RL": round(data.fy[2], 2),
+
+            # === TIRE DATA - REAR RIGHT (RR) ===
+            "TireTemp_RR_Inner": round(data.tyreTempI[3], 1),
+            "TireTemp_RR_Middle": round(data.tyreTempM[3], 1),
+            "TireTemp_RR_Outer": round(data.tyreTempO[3], 1),
+            "TireTemp_RR_Avg": round(data.tyreTemp[3], 1),
+            "TireTemp_RR_Core": round(data.tyreCoreTemperature[3], 1),
+            "TireWear_RR": round(data.tyreWear[3], 2),
+            "TireDirty_RR": round(data.tyreDirtyLevel[3], 3),
+            "TirePressure_RR": round(data.wheelsPressure[3], 2),
+            "TireLoad_RR": round(data.wheelLoad[3], 1),
+            "WheelSlip_RR": round(data.wheelSlip[3], 3),
+            "WheelAngularSpeed_RR": round(data.wheelAngularSpeed[3], 3),
+            "SlipRatio_RR": round(data.slipRatio[3], 3),
+            "SlipAngle_RR": round(data.slipAngle[3], 3),
+            "Camber_RR": round(data.camberRAD[3], 4),
+            "SuspensionTravel_RR": round(data.suspensionTravel[3], 4),
+            "SuspensionDamage_RR": round(data.suspensionDamage[3], 2),
+            "BrakeTemp_RR": round(data.brakeTemp[3], 1),
+            "Mz_RR": round(data.mz[3], 2),
+            "Fx_RR": round(data.fx[3], 2),
+            "Fy_RR": round(data.fy[3], 2),
+
+            # === FUEL & ENGINE ===
+            "Fuel": round(data.fuel, 3),
+            "TurboBoost": round(data.turboBoost, 3),
+            "EngineTemp_Oil": round(data_g.surfaceGrip, 3),  # Note: oil temp not in standard SM
+            "EngineBrake": data.engineBrake,
+            "CurrentMaxRpm": data.currentMaxRpm,
+
+            # === ERS/KERS SYSTEM (F1 specific) ===
+            "ERS_RecoveryLevel": data.ersRecoveryLevel,
+            "ERS_PowerLevel": data.ersPowerLevel,
+            "ERS_HeatCharging": data.ersHeatCharging,
+            "ERS_IsCharging": bool(data.ersIsCharging),
+            "KERS_Charge": round(data.kersCharge, 3),
+            "KERS_Input": round(data.kersInput, 3),
+            "KERS_CurrentKJ": round(data.kersCurrentKJ, 2),
+
+            # === DRS (Drag Reduction System) ===
+            "DRS": round(data.drs, 3),
+            "DRS_Available": bool(data.drsAvailable),
+            "DRS_Enabled": bool(data.drsEnabled),
+
+            # === DRIVER AIDS ===
+            "TC_Level": round(data.tc, 3),
+            "TC_InAction": bool(data.tcinAction),
+            "ABS_Level": round(data.abs, 3),
+            "ABS_InAction": bool(data.absInAction),
+            "AutoShifter": bool(data.autoShifterOn),
+            "PitLimiter": bool(data.pitLimiterOn),
+
+            # === VEHICLE SETUP ===
+            "RideHeight_Front": round(data.rideHeight[0], 3),
+            "RideHeight_Rear": round(data.rideHeight[1], 3),
+            "BrakeBias": round(data.brakeBias, 3),
+            "Ballast": round(data.ballast, 1),
+
+            # === CAR DAMAGE ===
+            "Damage_Front": round(data.carDamage[0], 2),
+            "Damage_Rear": round(data.carDamage[1], 2),
+            "Damage_Left": round(data.carDamage[2], 2),
+            "Damage_Right": round(data.carDamage[3], 2),
+            "Damage_Center": round(data.carDamage[4], 2),
+
+            # === ENVIRONMENT ===
+            "AirTemp": round(data.airTemp, 1),
+            "RoadTemp": round(data.roadTemp, 1),
+            "AirDensity": round(data.airDensity, 4),
+
+            # === TRACK POSITION & LAP TIMING ===
             "CompletedLaps": data_g.completedLaps,
             "iCurrentTime_ms": data_g.iCurrentTime,
             "CurrentLapTime_str": current_lap_time,
@@ -383,22 +615,38 @@ def main():
             "LapNumberTotal": data_g.numberOfLaps,
             "CurrentSectorIndex": data_g.currentSectorIndex,
             "LastSectorTime_ms": data_g.lastSectorTime,
+            "NormalizedPosition": round(data_g.normalizedCarPosition, 4),
+
+            # === PIT & TRACK STATUS ===
             "IsInPit": bool(data_g.isInPit),
             "IsInPitLane": bool(data_g.isInPitLane),
             "TyreCompound": tyre_compound_str,
-            "CarX": coords[0],
-            "CarY": coords[1],
-            "CarZ": coords[2],
             "Flag": data_g.flag,
             "SurfaceGrip": round(data_g.surfaceGrip, 3),
-        })
+            "NumberOfTyresOut": data.numberOfTyresOut,
 
-        # Display real-time telemetry summary (compact format)
+            # === CAR POSITION (3D Coordinates) ===
+            "CarX": round(coords[0], 3),
+            "CarY": round(coords[1], 3),
+            "CarZ": round(coords[2], 3),
+
+            # === ADVANCED TELEMETRY ===
+            "FinalFF": round(data.finalFF, 3),  # Force feedback
+            "PerformanceMeter": round(data.performanceMeter, 3),
+            "IsAIControlled": bool(data.isAIControlled),
+            "P2P_Activations": data.P2PActivations,  # Push-to-Pass
+            "P2P_Status": data.P2PStatus,
+        }
+
+        records.append(record)
+
+        # Display real-time telemetry summary with enhanced data
         print(
-            f"Speed: {data.speedKmh:.1f} km/h | RPM: {data.rpms} | "
-            f"Throttle: {data.gas:.3f} | Brake: {data.brake:.3f} | "
-            f"Steering: {data.steerAngle:.3f} | Gear: {gear} | "
-            f"Lap: {data_g.completedLaps} | Current: {current_lap_time}"
+            f"Speed: {data.speedKmh:.1f} km/h | RPM: {data.rpms} | Gear: {gear} | "
+            f"Throttle: {data.gas:.2f} | Brake: {data.brake:.2f} | "
+            f"G-Force: {data.accG[0]:.2f}lat {data.accG[2]:.2f}lon | "
+            f"Tire: FL {data.tyreTemp[0]:.0f}°C FR {data.tyreTemp[1]:.0f}°C | "
+            f"Lap: {data_g.completedLaps} ({current_lap_time})"
         )
 
         # Wait before next reading cycle

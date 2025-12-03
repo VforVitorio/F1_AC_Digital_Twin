@@ -1,269 +1,198 @@
 """
-F1 AC Digital Twin - Kafka Telemetry Producer
-HANDS-ON 1: Tasks 2.1, 2.2, 2.3
-Streams telemetry data from CSV to Kafka topic
+F1 AC Digital Twin - Kafka Telemetry Producer (Real-Time)
+Streams LIVE telemetry data from Assetto Corsa to Kafka topic
 
-ARCHITECTURE EXPLANATION:
-- BROKER: Kafka server running on localhost:9092 (intermediary that stores/distributes messages)
-- PRODUCER: This Python script (reads data and sends to broker)  
-- TOPIC: 'f1-telemetry' channel that organizes messages
-- CONSUMER: Future scripts that will read these messages for analysis
+ARCHITECTURE:
+- AC SHARED MEMORY: Real-time telemetry from Assetto Corsa
+- PRODUCER: This script reads live data and sends to Kafka broker
+- BROKER: Kafka server on localhost:9092
+- TOPIC: 'f1-telemetry' channel for real-time data
+- CONSUMER: Scripts reading messages for dashboards
 """
 
-import pandas as pd
 import json
 import time
+import ctypes
+import signal
+import sys
+from pathlib import Path
 from confluent_kafka import Producer
-from confluent_kafka.admin import AdminClient, NewTopic
 
-# Configuration - Updated to use lap_1_data.csv
-CSV_FILE = 'data/raw/LAPS_OUTPUT/lap_1_data.csv'      # Original lap data with all columns
-KAFKA_TOPIC = 'f1-telemetry'                          # Specialized channel for F1 data only
-KAFKA_SERVERS = 'localhost:9092'                      # Address of our Kafka broker
-DEMO_ROWS = 814                                        # Process all available rows (full lap)
-STREAM_DELAY = 0.1 
+# Add project root to path to import config
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+# Import configuration from centralized config
+from config import (
+    KAFKA_SERVERS,
+    KAFKA_TOPIC,
+    READ_INTERVAL
+)
+
+# Import modular components
+from src.ac_schemas import SPageFilePhysics, SPageFileGraphics
+from src.ac_utils import open_shared_memory_try, decode_c_wchar_array, ms_to_timestr
+from src.kafka_handlers import setup_kafka_topic, configure_producer, delivery_callback
 
 
-def load_and_examine_data():
+def stream_live_telemetry(producer):
     """
-    Task 2.1: Load CSV and examine telemetry structure
-    Updated for lap_1_data.csv with original column names
+    Main streaming loop: reads AC telemetry and streams to Kafka
     """
-    print("📊 Task 2.1: Loading lap 1 telemetry data...")
+    print("🚀 Starting LIVE telemetry streaming...")
+    print("📡 Reading from Assetto Corsa shared memory...")
+    print("🎮 Start driving in Assetto Corsa to see data...\n")
 
+    # Connect to AC shared memory
     try:
-        # Load lap 1 telemetry CSV file
-        df = pd.read_csv(CSV_FILE)
-
-        # Display structure information for verification
-        print("Available columns:")
-        print(df.columns.tolist())
-        print(f"\nTotal rows: {len(df)}")
-        print("\nFirst 5 rows:")
-        print(df.head())
-
-        # Field mapping for lap_1_data.csv (original column names)
-        selected_fields = [
-            'Distance', 'Timestamp', 'Speed_kmh', 'RPM', 'Throttle', 'Brake', 'Steering', 'Gear',
-            'CompletedLaps', 'iCurrentTime_ms', 'CurrentLapTime_str', 'iLastTime_ms', 'iBestTime_ms',
-            'LapNumberTotal', 'CurrentSectorIndex', 'LastSectorTime_ms', 'IsInPit', 'IsInPitLane',
-            'TyreCompound', 'X', 'Y', 'Z', 'Flag', 'SurfaceGrip'
-        ]
-
-        # Verify all required fields exist in CSV
-        available_fields = [field for field in selected_fields if field in df.columns]
-        missing_fields = [field for field in selected_fields if field not in df.columns]
-        
-        if missing_fields:
-            print(f"⚠️ Missing fields: {missing_fields}")
-            print(f"✅ Available fields: {available_fields}")
-            # Use only available fields
-            selected_fields = available_fields
-        else:
-            print("✅ All required fields are available")
-
-        # Show sample of selected data for validation
-        print(f"\nSelected fields sample:")
-        print(df[selected_fields].head())
-
-        return df, selected_fields
-
-    except FileNotFoundError:
-        print(f"❌ CSV file not found: {CSV_FILE}")
-        print("Available options:")
-        print("  - data/raw/LAPS_OUTPUT/lap_1_data.csv")
-        print("  - data/raw/LAPS_OUTPUT/lap_2_telemetry_2025-09-13_16-18-26.csv")
-        return None, None
+        physics = open_shared_memory_try(
+            "acpmf_physics", ctypes.sizeof(SPageFilePhysics))
+        graphics = open_shared_memory_try(
+            "acpmf_graphics", ctypes.sizeof(SPageFileGraphics))
     except Exception as e:
-        print(f"❌ Error loading CSV: {e}")
-        return None, None
+        print("❌ Could not connect to Assetto Corsa shared memory")
+        print("   Make sure Assetto Corsa is running!")
+        print(f"   Error: {repr(e)}")
+        return
 
+    print("✅ Connected to Assetto Corsa!\n")
 
-def setup_kafka_topic():
-    """
-    Task 2.2: Create Kafka topic if doesn't exist
+    message_count = 0
+    prev_completed_laps = None
 
-    The TOPIC acts as a specialized channel (like TV channel for F1 only).
-    Multiple producers can send to it, multiple consumers can read from it.
-    This decoupled architecture enables scalability and fault tolerance.
-    """
-    print("🔧 Task 2.2: Setting up Kafka topic...")
+    def cleanup(*args):
+        """Cleanup on exit"""
+        print(f"\n\n🛑 Stopping producer...")
+        print(f"📊 Total messages sent: {message_count}")
+        producer.flush()
+        sys.exit(0)
 
-    # Create admin client to manage Kafka infrastructure
-    admin_client = AdminClient({'bootstrap.servers': KAFKA_SERVERS})
-
+    # Setup signal handlers for graceful shutdown
+    signal.signal(signal.SIGINT, cleanup)
     try:
-        # Create topic with 1 partition for simplicity (production would use multiple)
-        topic = NewTopic(KAFKA_TOPIC, num_partitions=1, replication_factor=1)
-        admin_client.create_topics([topic])
-        print(f"✅ Topic '{KAFKA_TOPIC}' created successfully")
-    except Exception as e:
-        print(f"Topic already exists or error: {e}")
+        signal.signal(signal.SIGTERM, cleanup)
+    except Exception:
+        pass
 
+    # Main streaming loop
+    while True:
+        try:
+            # Read physics data
+            physics.seek(0)
+            buf = physics.read(ctypes.sizeof(SPageFilePhysics))
+            data = SPageFilePhysics.from_buffer_copy(buf)
 
-def configure_producer():
-    """
-    Task 2.2: Configure Kafka producer
+            # Read graphics/session data
+            graphics.seek(0)
+            buf_g = graphics.read(ctypes.sizeof(SPageFileGraphics))
+            data_g = SPageFileGraphics.from_buffer_copy(buf_g)
 
-    PRODUCER establishes connection with BROKER (localhost:9092).
-    bootstrap.servers = broker address (where to send messages)
-    client.id = unique identifier for this producer (helps with monitoring)
-    """
-    print("⚙️ Configuring Kafka producer...")
+            # Normalize gear (AC uses 1-based)
+            gear = data.gear - 1 if data.gear > 0 else data.gear
 
-    # Producer configuration - connects to broker and identifies itself
-    config = {
-        'bootstrap.servers': KAFKA_SERVERS,  # Broker address
-        'client.id': 'f1-telemetry-producer'  # Unique identifier for monitoring
-    }
+            # Decode strings
+            current_lap_time = ms_to_timestr(data_g.iCurrentTime)
+            tyre_compound_str = decode_c_wchar_array(data_g.tyreCompound)
 
-    producer = Producer(config)
-    print("✅ Producer configured successfully")
-    return producer
+            # Extract coordinates
+            coords = tuple(data_g.carCoordinates)
 
+            # Build telemetry message
+            telemetry_data = {
+                # Core telemetry
+                'distance': float(data_g.distanceTraveled),
+                'timestamp': int(time.time()),
+                'speed_kmh': float(data.speedKmh),
+                'rpm': int(data.rpms),
+                'throttle': float(data.gas),
+                'brake': float(data.brake),
+                'steering': float(data.steerAngle),
+                'gear': int(gear),
 
-def stream_telemetry_data(df, selected_fields, producer):
-    """
-    Task 2.3: Stream telemetry data to Kafka
-    Updated to use lap_1_data.csv with original field names
-    """
-    print(f"🚀 Task 2.3: Starting telemetry streaming...")
+                # Lap and timing
+                'completed_laps': int(data_g.completedLaps),
+                'current_time_ms': int(data_g.iCurrentTime),
+                'current_lap_time': str(current_lap_time),
+                'last_time_ms': int(data_g.iLastTime),
+                'best_time_ms': int(data_g.iBestTime),
+                'lap_number_total': int(data_g.numberOfLaps),
+                'current_sector_index': int(data_g.currentSectorIndex),
+                'last_sector_time_ms': int(data_g.lastSectorTime),
 
-    # Use all rows or limit to DEMO_ROWS
-    demo_data = df[selected_fields].head(DEMO_ROWS)
+                # Position and environment
+                'car_x': float(coords[0]),
+                'car_y': float(coords[1]),
+                'car_z': float(coords[2]),
+                'is_in_pit': bool(data_g.isInPit),
+                'is_in_pit_lane': bool(data_g.isInPitLane),
+                'tyre_compound': str(tyre_compound_str),
+                'flag': int(data_g.flag),
+                'surface_grip': float(data_g.surfaceGrip),
 
-    print(f"Streaming {len(demo_data)} telemetry records...")
+                # Kafka timestamp
+                'kafka_timestamp': int(time.time() * 1000)
+            }
 
-    for index, row in demo_data.iterrows():
-        # Convert CSV row to structured JSON message
-        # Using original column names from lap_1_data.csv
-        telemetry_data = {
-            # Core telemetry fields (original names)
-            'distance': float(row.get('Distance', 0)),            # Track distance
-            'timestamp': int(row.get('Timestamp', 0)),            # Unix timestamp
-            'speed_kmh': float(row.get('Speed_kmh', 0)),          # Speed in km/h
-            'rpm': int(row.get('RPM', 0)),                        # Engine RPM
-            'throttle': float(row.get('Throttle', 0)),            # Throttle input (0.0-1.0)
-            'brake': float(row.get('Brake', 0)),                  # Brake input (0.0-1.0)
-            'steering': float(row.get('Steering', 0)),            # Steering input
-            'gear': int(row.get('Gear', 0)),                      # Current gear
-            
-            # Lap and timing information
-            'completed_laps': int(row.get('CompletedLaps', 0)),
-            'current_time_ms': int(row.get('iCurrentTime_ms', 0)),
-            'current_lap_time': str(row.get('CurrentLapTime_str', '0:00.000')),
-            'last_time_ms': int(row.get('iLastTime_ms', 0)),
-            'best_time_ms': int(row.get('iBestTime_ms', 0)),
-            'lap_number_total': int(row.get('LapNumberTotal', 0)),
-            'current_sector_index': int(row.get('CurrentSectorIndex', 0)),
-            'last_sector_time_ms': int(row.get('LastSectorTime_ms', 0)),
-            
-            # Position and environment
-            'car_x': float(row.get('X', 0)),                      # X position
-            'car_y': float(row.get('Y', 0)),                      # Y position  
-            'car_z': float(row.get('Z', 0)),                      # Z position
-            'is_in_pit': bool(row.get('IsInPit', False)),
-            'is_in_pit_lane': bool(row.get('IsInPitLane', False)),
-            'tyre_compound': str(row.get('TyreCompound', 'Unknown')),
-            'flag': int(row.get('Flag', 0)),
-            'surface_grip': float(row.get('SurfaceGrip', 1.0)),
-            
-            # Additional timestamp for compatibility
-            'kafka_timestamp': int(time.time() * 1000)           # Current timestamp
-        }
+            # Send to Kafka
+            producer.produce(
+                KAFKA_TOPIC,
+                value=json.dumps(telemetry_data).encode('utf-8'),
+                callback=delivery_callback
+            )
 
-        # CORE KAFKA OPERATION: Send message to broker
-        producer.produce(
-            KAFKA_TOPIC,                           # Destination topic
-            value=json.dumps(telemetry_data).encode('utf-8'),  # JSON message
-            callback=delivery_callback             # Delivery confirmation
-        )
+            message_count += 1
 
-        # Show real-time progress with key metrics
-        print(f"📡 {index+1}/{DEMO_ROWS} - Speed: {telemetry_data['speed_kmh']:.1f}km/h, "
-              f"RPM: {telemetry_data['rpm']}, Gear: {telemetry_data['gear']}, "
-              f"Steering: {telemetry_data['steering']:.3f}, "
-              f"Distance: {telemetry_data['distance']:.1f}m, "
-              f"Lap: {telemetry_data['completed_laps']}")
+            # Lap completion detection
+            if prev_completed_laps is None:
+                prev_completed_laps = data_g.completedLaps
+            elif data_g.completedLaps > prev_completed_laps:
+                last_lap_time = ms_to_timestr(data_g.iLastTime)
+                print(f"\n🏁 LAP COMPLETED! Time: {last_lap_time}\n")
+                prev_completed_laps = data_g.completedLaps
 
-        # Poll for delivery reports (async confirmation handling)
-        producer.poll(0)
+            # Display progress every 10 messages
+            if message_count % 10 == 0:
+                print(f"📡 {message_count:05d} - Speed: {telemetry_data['speed_kmh']:6.1f}km/h | "
+                      f"RPM: {telemetry_data['rpm']:5d} | Gear: {telemetry_data['gear']} | "
+                      f"Lap: {telemetry_data['completed_laps']} ({current_lap_time})")
 
-        # Simulate real-time streaming frequency
-        time.sleep(STREAM_DELAY)
+            # Poll for delivery reports
+            producer.poll(0)
 
-    # Ensure all messages are delivered before finishing
-    producer.flush()
-    print("✅ Telemetry streaming completed successfully")
+            # Wait before next read
+            time.sleep(READ_INTERVAL)
 
-
-def delivery_callback(err, msg):
-    """
-    Callback for message delivery confirmation
-
-    This confirms each message successfully reached the broker.
-    In production, you'd log failures for retry logic.
-    """
-    if err is not None:
-        print(f"❌ Message delivery failed: {err}")
-    # Uncomment for verbose delivery confirmation:
-    # else:
-    #     print(f"✅ Message delivered to {msg.topic()} [{msg.partition()}]")
+        except Exception as e:
+            print(f"⚠️  Error reading telemetry: {e}")
+            time.sleep(1)
 
 
 def main():
-    """
-    Main execution function - Demonstrates complete Producer workflow
-
-    TERMINAL OUTPUT EXPLANATION:
-    - Task 2.1: Loads and verifies CSV telemetry data from lap_1_data.csv
-    - Task 2.2: Creates topic and configures producer
-    - Task 2.3: Streams all 814 messages with complete telemetry data
-
-    Each 📡 line shows a message sent to broker with real F1 metrics including:
-    Speed, RPM, Gear, Steering, Distance, and Lap information from original AC data.
-    This provides comprehensive telemetry for AI analysis and training.
-    """
+    """Main execution function"""
     print("=" * 60)
-    print("F1 AC DIGITAL TWIN - KAFKA TELEMETRY PRODUCER")
-    print("HANDS-ON 1: Tasks 2.1, 2.2, 2.3 (Using lap_1_data.csv)")
+    print("F1 AC DIGITAL TWIN - REAL-TIME KAFKA PRODUCER")
+    print("Streaming LIVE telemetry from Assetto Corsa")
     print("=" * 60)
+    print()
 
     try:
-        # Task 2.1: Load and examine data
-        # Prepares real F1 telemetry from Assetto Corsa lap_1_data.csv
-        df, selected_fields = load_and_examine_data()
-        if df is None:
-            print("❌ Failed to load data. Check CSV file path.")
-            return
+        # Setup Kafka infrastructure
+        setup_kafka_topic(KAFKA_SERVERS, KAFKA_TOPIC)
+        producer = configure_producer(KAFKA_SERVERS, 'f1-telemetry-realtime-producer')
 
-        print("\n" + "-" * 40)
+        print("\n" + "-" * 60 + "\n")
 
-        # Task 2.2: Setup Kafka infrastructure
-        # Creates topic and producer - establishes Producer→Broker connection
-        setup_kafka_topic()
-        producer = configure_producer()
+        # Start live streaming
+        stream_live_telemetry(producer)
 
-        print("\n" + "-" * 40)
-
-        # Task 2.3: Stream data
-        # Demonstrates Producer→Broker→Topic flow with complete F1 data
-        stream_telemetry_data(df, selected_fields, producer)
-
-        print("\n" + "=" * 60)
-        print("🏁 PRODUCER TASKS COMPLETED SUCCESSFULLY")
-        print("🔍 CHECK CONFLUENT CONTROL CENTER: http://localhost:9021")
-        print("📍 Navigate to: Topics → f1-telemetry → Messages")
-        print(f"📊 Complete lap data streamed: {DEMO_ROWS} telemetry records")
-        print("📈 Data includes: Speed, RPM, Position, Timing, and Environmental data")
-        print("=" * 60)
-
+    except KeyboardInterrupt:
+        print("\n🛑 Producer stopped by user")
     except Exception as e:
         print(f"❌ Error: {e}")
-        print("Make sure:")
-        print("- CSV file 'lap_1_data.csv' exists in data/raw/LAPS_OUTPUT/")
+        print("\nMake sure:")
+        print("- Assetto Corsa is running")
         print("- Kafka is running (docker-compose up)")
-        print("- Required packages installed")
+        print("- Required packages are installed")
 
 
 if __name__ == "__main__":
