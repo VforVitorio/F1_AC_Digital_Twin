@@ -44,20 +44,101 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
+          "mappings": [
+            {
+              "options": {
+                "from": -180,
+                "result": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "FULL LEFT"
+                },
+                "to": -135
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": -135,
+                "result": {
+                  "color": "orange",
+                  "index": 1
+                },
+                "to": -45
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": -45,
+                "result": {
+                  "color": "green",
+                  "index": 2
+                },
+                "to": 45
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 45,
+                "result": {
+                  "color": "orange",
+                  "index": 3
+                },
+                "to": 135
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 135,
+                "result": {
+                  "color": "red",
+                  "index": 4,
+                  "text": "FULL RIGHT"
+                },
+                "to": 180
+              },
+              "type": "range"
+            }
+          ],
+          "max": 180,
+          "min": -180,
           "thresholds": {
             "mode": "absolute",
             "steps": [
+              {
+                "color": "red",
+                "value": -180
+              },
+              {
+                "color": "orange",
+                "value": -90
+              },
+              {
+                "color": "green",
+                "value": -45
+              },
               {
                 "color": "green",
                 "value": 0
               },
               {
+                "color": "green",
+                "value": 45
+              },
+              {
+                "color": "orange",
+                "value": 90
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 135
               }
             ]
-          }
+          },
+          "unit": "degree"
         },
         "overrides": []
       },
@@ -70,8 +151,8 @@
       "id": 27,
       "options": {
         "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
+        "minVizWidth": 200,
+        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -79,9 +160,13 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
-        "sizing": "auto"
+        "sizing": "auto",
+        "text": {
+          "titleSize": 18,
+          "valueSize": 48
+        }
       },
       "pluginVersion": "12.1.1",
       "targets": [
@@ -90,7 +175,7 @@
           "refId": "A"
         }
       ],
-      "title": "Stearing Wheel Angle",
+      "title": "Steering Wheel Angle",
       "type": "gauge"
     },
     {
