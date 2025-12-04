@@ -105,15 +105,7 @@ class F1TelemetryPipeline:
 
     def create_telemetry_point(self, telemetry_data):
         """
-        Crear punto de datos InfluxDB con estructura optimizada para Grafana
-
-        Modelo de datos actualizado para las variables del DF filtrado:
-        Speed_kmh, RPM, Throttle, Brake, Steering, Gear, iCurrentTime_ms, CarX, CarY, CarZ, Distance
-
-        - Measurement: f1_telemetry
-        - Tags: car, driver, track (para filtros en Grafana)
-        - Fields: todas las métricas del DF filtrado
-        - Timestamp: UTC con precisión de nanosegundos
+        Crear punto de datos InfluxDB con TODAS las variables de telemetría
 
         Args:
             telemetry_data: Dictionary with telemetry data
@@ -130,28 +122,154 @@ class F1TelemetryPipeline:
                 .tag("session", "practice") \
                 .tag("data_source", "assetto_corsa")
 
-            # Fields con todas las métricas del DF filtrado
+            # === INPUTS BÁSICOS ===
             point = point \
                 .field("speed_kmh", float(telemetry_data.get('speed_kmh', 0))) \
                 .field("rpm", int(telemetry_data.get('rpm', 0))) \
                 .field("throttle", float(telemetry_data.get('throttle', 0))) \
                 .field("brake", float(telemetry_data.get('brake', 0))) \
+                .field("clutch", float(telemetry_data.get('clutch', 0))) \
                 .field("steering", float(telemetry_data.get('steering', 0))) \
-                .field("gear", int(telemetry_data.get('gear', 0))) \
+                .field("gear", int(telemetry_data.get('gear', 0)))
+
+            # === VECTORES DE VELOCIDAD ===
+            point = point \
+                .field("velocity_x", float(telemetry_data.get('velocity_x', 0))) \
+                .field("velocity_y", float(telemetry_data.get('velocity_y', 0))) \
+                .field("velocity_z", float(telemetry_data.get('velocity_z', 0))) \
+                .field("local_velocity_x", float(telemetry_data.get('local_velocity_x', 0))) \
+                .field("local_velocity_y", float(telemetry_data.get('local_velocity_y', 0))) \
+                .field("local_velocity_z", float(telemetry_data.get('local_velocity_z', 0)))
+
+            # === G-FORCES ===
+            point = point \
+                .field("accg_lateral", float(telemetry_data.get('accg_lateral', 0))) \
+                .field("accg_vertical", float(telemetry_data.get('accg_vertical', 0))) \
+                .field("accg_longitudinal", float(telemetry_data.get('accg_longitudinal', 0)))
+
+            # === ORIENTACIÓN ===
+            point = point \
+                .field("heading", float(telemetry_data.get('heading', 0))) \
+                .field("pitch", float(telemetry_data.get('pitch', 0))) \
+                .field("roll", float(telemetry_data.get('roll', 0))) \
+                .field("cg_height", float(telemetry_data.get('cg_height', 0)))
+
+            # === VELOCIDAD ANGULAR ===
+            point = point \
+                .field("angular_vel_x", float(telemetry_data.get('angular_vel_x', 0))) \
+                .field("angular_vel_y", float(telemetry_data.get('angular_vel_y', 0))) \
+                .field("angular_vel_z", float(telemetry_data.get('angular_vel_z', 0)))
+
+            # === NEUMÁTICOS - TEMPERATURAS ===
+            point = point \
+                .field("tire_temp_fl_inner", float(telemetry_data.get('tire_temp_fl_inner', 0))) \
+                .field("tire_temp_fl_middle", float(telemetry_data.get('tire_temp_fl_middle', 0))) \
+                .field("tire_temp_fl_outer", float(telemetry_data.get('tire_temp_fl_outer', 0))) \
+                .field("tire_temp_fl_avg", float(telemetry_data.get('tire_temp_fl_avg', 0))) \
+                .field("tire_temp_fl_core", float(telemetry_data.get('tire_temp_fl_core', 0))) \
+                .field("tire_temp_fr_inner", float(telemetry_data.get('tire_temp_fr_inner', 0))) \
+                .field("tire_temp_fr_middle", float(telemetry_data.get('tire_temp_fr_middle', 0))) \
+                .field("tire_temp_fr_outer", float(telemetry_data.get('tire_temp_fr_outer', 0))) \
+                .field("tire_temp_fr_avg", float(telemetry_data.get('tire_temp_fr_avg', 0))) \
+                .field("tire_temp_fr_core", float(telemetry_data.get('tire_temp_fr_core', 0))) \
+                .field("tire_temp_rl_inner", float(telemetry_data.get('tire_temp_rl_inner', 0))) \
+                .field("tire_temp_rl_middle", float(telemetry_data.get('tire_temp_rl_middle', 0))) \
+                .field("tire_temp_rl_outer", float(telemetry_data.get('tire_temp_rl_outer', 0))) \
+                .field("tire_temp_rl_avg", float(telemetry_data.get('tire_temp_rl_avg', 0))) \
+                .field("tire_temp_rl_core", float(telemetry_data.get('tire_temp_rl_core', 0))) \
+                .field("tire_temp_rr_inner", float(telemetry_data.get('tire_temp_rr_inner', 0))) \
+                .field("tire_temp_rr_middle", float(telemetry_data.get('tire_temp_rr_middle', 0))) \
+                .field("tire_temp_rr_outer", float(telemetry_data.get('tire_temp_rr_outer', 0))) \
+                .field("tire_temp_rr_avg", float(telemetry_data.get('tire_temp_rr_avg', 0))) \
+                .field("tire_temp_rr_core", float(telemetry_data.get('tire_temp_rr_core', 0)))
+
+            # === NEUMÁTICOS - DESGASTE Y PRESIÓN ===
+            point = point \
+                .field("tire_wear_fl", float(telemetry_data.get('tire_wear_fl', 0))) \
+                .field("tire_wear_fr", float(telemetry_data.get('tire_wear_fr', 0))) \
+                .field("tire_wear_rl", float(telemetry_data.get('tire_wear_rl', 0))) \
+                .field("tire_wear_rr", float(telemetry_data.get('tire_wear_rr', 0))) \
+                .field("tire_pressure_fl", float(telemetry_data.get('tire_pressure_fl', 0))) \
+                .field("tire_pressure_fr", float(telemetry_data.get('tire_pressure_fr', 0))) \
+                .field("tire_pressure_rl", float(telemetry_data.get('tire_pressure_rl', 0))) \
+                .field("tire_pressure_rr", float(telemetry_data.get('tire_pressure_rr', 0)))
+
+            # === NEUMÁTICOS - DINÁMICA ===
+            point = point \
+                .field("wheel_slip_fl", float(telemetry_data.get('wheel_slip_fl', 0))) \
+                .field("wheel_slip_fr", float(telemetry_data.get('wheel_slip_fr', 0))) \
+                .field("wheel_slip_rl", float(telemetry_data.get('wheel_slip_rl', 0))) \
+                .field("wheel_slip_rr", float(telemetry_data.get('wheel_slip_rr', 0)))
+
+            # === FRENOS ===
+            point = point \
+                .field("brake_temp_fl", float(telemetry_data.get('brake_temp_fl', 0))) \
+                .field("brake_temp_fr", float(telemetry_data.get('brake_temp_fr', 0))) \
+                .field("brake_temp_rl", float(telemetry_data.get('brake_temp_rl', 0))) \
+                .field("brake_temp_rr", float(telemetry_data.get('brake_temp_rr', 0)))
+
+            # === COMBUSTIBLE Y MOTOR ===
+            point = point \
+                .field("fuel", float(telemetry_data.get('fuel', 0))) \
+                .field("turbo_boost", float(telemetry_data.get('turbo_boost', 0)))
+
+            # === ERS/KERS ===
+            point = point \
+                .field("ers_recovery_level", int(telemetry_data.get('ers_recovery_level', 0))) \
+                .field("ers_power_level", int(telemetry_data.get('ers_power_level', 0))) \
+                .field("ers_heat_charging", int(telemetry_data.get('ers_heat_charging', 0))) \
+                .field("ers_is_charging", int(telemetry_data.get('ers_is_charging', 0))) \
+                .field("kers_charge", float(telemetry_data.get('kers_charge', 0))) \
+                .field("kers_input", float(telemetry_data.get('kers_input', 0))) \
+                .field("kers_current_kj", float(telemetry_data.get('kers_current_kj', 0)))
+
+            # === DRS ===
+            point = point \
+                .field("drs", float(telemetry_data.get('drs', 0))) \
+                .field("drs_available", int(telemetry_data.get('drs_available', 0))) \
+                .field("drs_enabled", int(telemetry_data.get('drs_enabled', 0)))
+
+            # === AYUDAS DE CONDUCCIÓN ===
+            point = point \
+                .field("tc", float(telemetry_data.get('tc', 0))) \
+                .field("tc_in_action", int(telemetry_data.get('tc_in_action', 0))) \
+                .field("abs", float(telemetry_data.get('abs', 0))) \
+                .field("abs_in_action", int(telemetry_data.get('abs_in_action', 0)))
+
+            # === SETUP DEL COCHE ===
+            point = point \
+                .field("ride_height_front", float(telemetry_data.get('ride_height_front', 0))) \
+                .field("ride_height_rear", float(telemetry_data.get('ride_height_rear', 0))) \
+                .field("brake_bias", float(telemetry_data.get('brake_bias', 0)))
+
+            # === AMBIENTE ===
+            point = point \
+                .field("air_temp", float(telemetry_data.get('air_temp', 0))) \
+                .field("road_temp", float(telemetry_data.get('road_temp', 0))) \
+                .field("air_density", float(telemetry_data.get('air_density', 0)))
+
+            # === POSICIÓN Y TIEMPOS ===
+            point = point \
+                .field("distance", float(telemetry_data.get('distance', 0))) \
+                .field("completed_laps", int(telemetry_data.get('completed_laps', 0))) \
                 .field("current_time_ms", int(telemetry_data.get('current_time_ms', 0))) \
+                .field("last_time_ms", int(telemetry_data.get('last_time_ms', 0))) \
+                .field("best_time_ms", int(telemetry_data.get('best_time_ms', 0))) \
+                .field("current_sector_index", int(telemetry_data.get('current_sector_index', 0))) \
+                .field("normalized_position", float(telemetry_data.get('normalized_position', 0)))
+
+            # === POSICIÓN 3D ===
+            point = point \
                 .field("car_x", float(telemetry_data.get('car_x', 0))) \
                 .field("car_y", float(telemetry_data.get('car_y', 0))) \
-                .field("car_z", float(telemetry_data.get('car_z', 0))) \
-                .field("distance", float(telemetry_data.get('distance', 0)))
+                .field("car_z", float(telemetry_data.get('car_z', 0)))
 
+            # === CAMPOS DERIVADOS ===
             point = point \
                 .field("throttle_percentage", float(telemetry_data.get('throttle', 0)) * 100) \
                 .field("brake_percentage", float(telemetry_data.get('brake', 0)) * 100) \
-                .field("steering_angle", float(telemetry_data.get('steering', 0))) \
                 .field("is_braking", 1 if float(telemetry_data.get('brake', 0)) > 0.1 else 0) \
-                .field("is_accelerating", 1 if float(telemetry_data.get('throttle', 0)) > 0.1 else 0) \
-                .field("is_turning_left", 1 if float(telemetry_data.get('steering', 0)) < -0.1 else 0) \
-                .field("is_turning_right", 1 if float(telemetry_data.get('steering', 0)) > 0.1 else 0)
+                .field("is_accelerating", 1 if float(telemetry_data.get('throttle', 0)) > 0.1 else 0)
 
             # Timestamp preciso
             point = point.time(datetime.now(timezone.utc), WritePrecision.NS)

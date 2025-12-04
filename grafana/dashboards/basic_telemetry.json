@@ -24,7 +24,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "af5wsxv2nyi9sa"
+        "uid": "influxdb-f1"
       },
       "fieldConfig": {
         "defaults": {
@@ -75,7 +75,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "af5wsxv2nyi9sa"
+            "uid": "influxdb-f1"
           },
           "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: -30s)\r\n  |> filter(fn: (r) => r._measurement == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r._field == \"rpm\")\r\n  |> last()",
           "refId": "A"
@@ -87,7 +87,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "af5wsxv2nyi9sa"
+        "uid": "influxdb-f1"
       },
       "fieldConfig": {
         "defaults": {
@@ -140,7 +140,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "af5wsxv2nyi9sa"
+            "uid": "influxdb-f1"
           },
           "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: -30s)\r\n  |> filter(fn: (r) => r._measurement == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r._field == \"gear\")\r\n  |> last()",
           "refId": "A"
@@ -152,7 +152,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "af5wsxv2nyi9sa"
+        "uid": "influxdb-f1"
       },
       "fieldConfig": {
         "defaults": {
@@ -203,7 +203,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "af5wsxv2nyi9sa"
+            "uid": "influxdb-f1"
           },
           "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: -30s)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"speed_kmh\")\r\n  |> last()",
           "refId": "A"
@@ -215,7 +215,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "af5wsxv2nyi9sa"
+        "uid": "influxdb-f1"
       },
       "fieldConfig": {
         "defaults": {
@@ -297,7 +297,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "af5wsxv2nyi9sa"
+            "uid": "influxdb-f1"
           },
           "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"throttle\")\r\n  |> aggregateWindow(every: 100ms, fn: last, createEmpty: false)\r\n  |> map(fn: (r) => ({ r with _value: r._value * 100.0 }))\r\n  |> yield(name: \"throttle\")",
           "refId": "A"
@@ -309,7 +309,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "af5wsxv2nyi9sa"
+        "uid": "influxdb-f1"
       },
       "description": "Brake",
       "fieldConfig": {
@@ -392,7 +392,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "af5wsxv2nyi9sa"
+            "uid": "influxdb-f1"
           },
           "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"brake\")\r\n  |> aggregateWindow(every: 100ms, fn: last, createEmpty: false)\r\n  |> map(fn: (r) => ({ r with _value: r._value * 100.0 }))\r\n  |> yield(name: \"brake\")",
           "refId": "A"
@@ -404,7 +404,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "af5wsxv2nyi9sa"
+        "uid": "influxdb-f1"
       },
       "fieldConfig": {
         "defaults": {
@@ -486,7 +486,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "af5wsxv2nyi9sa"
+            "uid": "influxdb-f1"
           },
           "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r._field == \"current_time_ms\")\r\n  |> map(fn: (r) => ({ r with _value: float(v: r._value) / 1000.0 }))\r\n  |> aggregateWindow(every: 500ms, fn: last, createEmpty: false)",
           "refId": "A"

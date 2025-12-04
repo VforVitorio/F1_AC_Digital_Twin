@@ -97,19 +97,125 @@ def stream_live_telemetry(producer):
             # Extract coordinates
             coords = tuple(data_g.carCoordinates)
 
-            # Build telemetry message
+            # Build telemetry message with ALL variables
             telemetry_data = {
-                # Core telemetry
-                'distance': float(data_g.distanceTraveled),
-                'timestamp': int(time.time()),
+                # === INPUTS BÁSICOS ===
                 'speed_kmh': float(data.speedKmh),
                 'rpm': int(data.rpms),
                 'throttle': float(data.gas),
                 'brake': float(data.brake),
+                'clutch': float(data.clutch),
                 'steering': float(data.steerAngle),
                 'gear': int(gear),
 
-                # Lap and timing
+                # === VECTORES DE VELOCIDAD ===
+                'velocity_x': float(data.velocity[0]),
+                'velocity_y': float(data.velocity[1]),
+                'velocity_z': float(data.velocity[2]),
+                'local_velocity_x': float(data.localVelocity[0]),
+                'local_velocity_y': float(data.localVelocity[1]),
+                'local_velocity_z': float(data.localVelocity[2]),
+
+                # === G-FORCES ===
+                'accg_lateral': float(data.accG[0]),
+                'accg_vertical': float(data.accG[1]),
+                'accg_longitudinal': float(data.accG[2]),
+
+                # === ORIENTACIÓN DEL COCHE ===
+                'heading': float(data.heading),
+                'pitch': float(data.pitch),
+                'roll': float(data.roll),
+                'cg_height': float(data.cgHeight),
+
+                # === VELOCIDAD ANGULAR ===
+                'angular_vel_x': float(data.localAngularVel[0]),
+                'angular_vel_y': float(data.localAngularVel[1]),
+                'angular_vel_z': float(data.localAngularVel[2]),
+
+                # === NEUMÁTICOS - TEMPERATURAS (4 ruedas) ===
+                'tire_temp_fl_inner': float(data.tyreTempI[0]),
+                'tire_temp_fl_middle': float(data.tyreTempM[0]),
+                'tire_temp_fl_outer': float(data.tyreTempO[0]),
+                'tire_temp_fl_avg': float(data.tyreTemp[0]),
+                'tire_temp_fl_core': float(data.tyreCoreTemperature[0]),
+
+                'tire_temp_fr_inner': float(data.tyreTempI[1]),
+                'tire_temp_fr_middle': float(data.tyreTempM[1]),
+                'tire_temp_fr_outer': float(data.tyreTempO[1]),
+                'tire_temp_fr_avg': float(data.tyreTemp[1]),
+                'tire_temp_fr_core': float(data.tyreCoreTemperature[1]),
+
+                'tire_temp_rl_inner': float(data.tyreTempI[2]),
+                'tire_temp_rl_middle': float(data.tyreTempM[2]),
+                'tire_temp_rl_outer': float(data.tyreTempO[2]),
+                'tire_temp_rl_avg': float(data.tyreTemp[2]),
+                'tire_temp_rl_core': float(data.tyreCoreTemperature[2]),
+
+                'tire_temp_rr_inner': float(data.tyreTempI[3]),
+                'tire_temp_rr_middle': float(data.tyreTempM[3]),
+                'tire_temp_rr_outer': float(data.tyreTempO[3]),
+                'tire_temp_rr_avg': float(data.tyreTemp[3]),
+                'tire_temp_rr_core': float(data.tyreCoreTemperature[3]),
+
+                # === NEUMÁTICOS - DESGASTE Y PRESIÓN ===
+                'tire_wear_fl': float(data.tyreWear[0]),
+                'tire_wear_fr': float(data.tyreWear[1]),
+                'tire_wear_rl': float(data.tyreWear[2]),
+                'tire_wear_rr': float(data.tyreWear[3]),
+
+                'tire_pressure_fl': float(data.wheelsPressure[0]),
+                'tire_pressure_fr': float(data.wheelsPressure[1]),
+                'tire_pressure_rl': float(data.wheelsPressure[2]),
+                'tire_pressure_rr': float(data.wheelsPressure[3]),
+
+                # === NEUMÁTICOS - DINÁMICA ===
+                'wheel_slip_fl': float(data.wheelSlip[0]),
+                'wheel_slip_fr': float(data.wheelSlip[1]),
+                'wheel_slip_rl': float(data.wheelSlip[2]),
+                'wheel_slip_rr': float(data.wheelSlip[3]),
+
+                # === FRENOS ===
+                'brake_temp_fl': float(data.brakeTemp[0]),
+                'brake_temp_fr': float(data.brakeTemp[1]),
+                'brake_temp_rl': float(data.brakeTemp[2]),
+                'brake_temp_rr': float(data.brakeTemp[3]),
+
+                # === COMBUSTIBLE Y MOTOR ===
+                'fuel': float(data.fuel),
+                'turbo_boost': float(data.turboBoost),
+
+                # === ERS/KERS ===
+                'ers_recovery_level': int(data.ersRecoveryLevel),
+                'ers_power_level': int(data.ersPowerLevel),
+                'ers_heat_charging': int(data.ersHeatCharging),
+                'ers_is_charging': bool(data.ersIsCharging),
+                'kers_charge': float(data.kersCharge),
+                'kers_input': float(data.kersInput),
+                'kers_current_kj': float(data.kersCurrentKJ),
+
+                # === DRS ===
+                'drs': float(data.drs),
+                'drs_available': bool(data.drsAvailable),
+                'drs_enabled': bool(data.drsEnabled),
+
+                # === AYUDAS DE CONDUCCIÓN ===
+                'tc': float(data.tc),
+                'tc_in_action': bool(data.tcinAction),
+                'abs': float(data.abs),
+                'abs_in_action': bool(data.absInAction),
+
+                # === SETUP DEL COCHE ===
+                'ride_height_front': float(data.rideHeight[0]),
+                'ride_height_rear': float(data.rideHeight[1]),
+                'brake_bias': float(data.brakeBias),
+
+                # === AMBIENTE ===
+                'air_temp': float(data.airTemp),
+                'road_temp': float(data.roadTemp),
+                'air_density': float(data.airDensity),
+
+                # === POSICIÓN Y TIEMPOS ===
+                'distance': float(data_g.distanceTraveled),
                 'completed_laps': int(data_g.completedLaps),
                 'current_time_ms': int(data_g.iCurrentTime),
                 'current_lap_time': str(current_lap_time),
@@ -118,18 +224,22 @@ def stream_live_telemetry(producer):
                 'lap_number_total': int(data_g.numberOfLaps),
                 'current_sector_index': int(data_g.currentSectorIndex),
                 'last_sector_time_ms': int(data_g.lastSectorTime),
+                'normalized_position': float(data_g.normalizedCarPosition),
 
-                # Position and environment
+                # === POSICIÓN 3D ===
                 'car_x': float(coords[0]),
                 'car_y': float(coords[1]),
                 'car_z': float(coords[2]),
+
+                # === ESTADO EN PISTA ===
                 'is_in_pit': bool(data_g.isInPit),
                 'is_in_pit_lane': bool(data_g.isInPitLane),
                 'tyre_compound': str(tyre_compound_str),
                 'flag': int(data_g.flag),
                 'surface_grip': float(data_g.surfaceGrip),
 
-                # Kafka timestamp
+                # === METADATA ===
+                'timestamp': int(time.time()),
                 'kafka_timestamp': int(time.time() * 1000)
             }
 
