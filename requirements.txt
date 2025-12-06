@@ -1,5 +1,4 @@
 # F1 AC Digital Twin - Python Dependencies
-# Instalar con: pip install -r requirements.txt
 
 # Kafka - Streaming de datos en tiempo real
 confluent-kafka>=2.3.0
@@ -16,4 +15,12 @@ python-dateutil>=2.8.2
 
 # Environment Variables
 python-dotenv>=1.0.0
-matplotlib
+
+# Visualization
+matplotlib>=3.7.0
+plotly>=5.14.0
+
+# Deep Learning - PyTorch
+# NOTE: For RTX 5000 Series (Blackwell) with CUDA 12.8, install MANUALLY:
+#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+# Requires PyTorch 2.7+ for sm_120 architecture support
