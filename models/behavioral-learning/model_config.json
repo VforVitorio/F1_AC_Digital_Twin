@@ -1,0 +1,66 @@
+{
+  "architecture": "TCN",
+  "input_size": 7,
+  "output_size": 3,
+  "num_channels": [
+    64,
+    128,
+    128,
+    64
+  ],
+  "kernel_size": 3,
+  "dropout": 0.2,
+  "window_size": 60,
+  "stride": 10,
+  "feature_cols": [
+    "Speed_kmh",
+    "RPM",
+    "Distance",
+    "CarX",
+    "CarY",
+    "CarZ",
+    "Gear"
+  ],
+  "target_cols": [
+    "Throttle",
+    "Brake",
+    "Steering"
+  ],
+  "total_parameters": 240579,
+  "trainable_parameters": 240579,
+  "training": {
+    "batch_size": 128,
+    "learning_rate": 0.001,
+    "num_epochs": 50,
+    "optimizer": "Adam",
+    "loss": "MSE",
+    "best_val_loss": 0.024743046301106613,
+    "best_epoch": 45
+  },
+  "test_metrics": {
+    "Throttle": {
+      "MSE": 0.06598490476608276,
+      "RMSE": 0.25687527083408157,
+      "MAE": 0.07574719935655594,
+      "R2": 0.9405677318572998
+    },
+    "Brake": {
+      "MSE": 0.018460050225257874,
+      "RMSE": 0.13586776742575066,
+      "MAE": 0.03159642592072487,
+      "R2": 0.9840219020843506
+    },
+    "Steering": {
+      "MSE": 0.0057840668596327305,
+      "RMSE": 0.07605305292776043,
+      "MAE": 0.0350617840886116,
+      "R2": 0.9953228235244751
+    },
+    "Overall": {
+      "MSE": 0.030076267197728157,
+      "RMSE": 0.1734251054424594,
+      "MAE": 0.04746849462389946,
+      "R2": 0.9733036160469055
+    }
+  }
+}

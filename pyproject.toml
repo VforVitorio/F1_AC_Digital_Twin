@@ -6,8 +6,8 @@ readme = "README.md"
 requires-python = "~=3.11.0"
 license = {text = "MIT"}
 authors = [
-    {name = "Víctor Vega Sobral"},
-    {name = "Santiago Souto Ortega"}
+    {name = "Víctor"},
+    {name = "Santiago"}
 ]
 keywords = [
     "F1",
@@ -25,16 +25,29 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
-    "pandas",
-    "numpy",
+    # Data Processing
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+
+    # Kafka - Real-time data streaming
+    "confluent-kafka>=2.3.0",
+
+    # InfluxDB - Time series database
+    "influxdb-client>=1.38.0",
+
+    # Utilities
+    "python-dateutil>=2.8.2",
+
+    # Environment Variables
+    "python-dotenv>=1.0.0",
+
+    # Jupyter & Visualization (existing)
     "matplotlib",
     "ipython",
     "ipykernel",
     "plotly",
     "nbformat",
-    "ipywidgets",
-    "confluent-kafka",
-    "influxdb-client"
+    "ipywidgets"
 ]
 
 [project.urls]
