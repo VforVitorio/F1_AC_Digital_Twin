@@ -1,0 +1,32 @@
+{
+  "expert_name": "expert3_control",
+  "n_components": 5,
+  "n_features": 12,
+  "features": [
+    "Speed_kmh",
+    "RPM",
+    "Throttle",
+    "Brake",
+    "Steering",
+    "Gear",
+    "TC_InAction",
+    "ABS_InAction",
+    "BrakeBias",
+    "BrakeTemp_FL",
+    "BrakeTemp_FR",
+    "BrakeTemp_RL"
+  ],
+  "covariance_type": "full",
+  "threshold": -32.55256394073701,
+  "threshold_percentile": 95,
+  "metrics": {
+    "train_bic": -11242589.846554415,
+    "val_bic": -2405426.980466983,
+    "train_aic": -11247009.807549221,
+    "val_aic": -2409147.408596457
+  },
+  "converged": true,
+  "train_samples": 124941,
+  "val_samples": 26763,
+  "test_samples": 26804
+}

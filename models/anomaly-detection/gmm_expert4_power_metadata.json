@@ -1,0 +1,30 @@
+{
+  "expert_name": "expert4_power",
+  "n_components": 5,
+  "n_features": 10,
+  "features": [
+    "Fuel",
+    "TurboBoost",
+    "EngineTemp_Oil",
+    "CurrentMaxRpm",
+    "EngineBrake",
+    "KERS_Charge",
+    "KERS_CurrentKJ",
+    "ERS_PowerLevel",
+    "ERS_RecoveryLevel",
+    "DRS_Enabled"
+  ],
+  "covariance_type": "full",
+  "threshold": -27.998220996723607,
+  "threshold_percentile": 95,
+  "metrics": {
+    "train_bic": -10031251.386777421,
+    "val_bic": -2124607.5203974005,
+    "train_aic": -10034454.39815912,
+    "val_aic": -2127303.601574927
+  },
+  "converged": true,
+  "train_samples": 124941,
+  "val_samples": 26763,
+  "test_samples": 26804
+}
