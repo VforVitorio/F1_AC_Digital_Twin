@@ -1,0 +1,25 @@
+{
+  "experts": [
+    "expert1_tire",
+    "expert2_dynamics",
+    "expert3_control",
+    "expert4_power"
+  ],
+  "n_experts": 4,
+  "expert_models": {
+    "expert1_tire": "gmm_expert1_tire.pkl",
+    "expert2_dynamics": "gmm_expert2_dynamics.pkl",
+    "expert3_control": "gmm_expert3_control.pkl",
+    "expert4_power": "gmm_expert4_power.pkl"
+  },
+  "gating_model": "gating_network.pkl",
+  "thresholds": {
+    "expert1_tire": -94.07462066663697,
+    "expert2_dynamics": 20.85993551982548,
+    "expert3_control": -32.55256394073701,
+    "expert4_power": -27.998220996723607
+  },
+  "gating_strategy": "learned",
+  "uniform_threshold": -49.19143462646742,
+  "confidence_threshold": -5.541050248658769
+}
