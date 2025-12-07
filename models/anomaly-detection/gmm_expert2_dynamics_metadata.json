@@ -1,0 +1,35 @@
+{
+  "expert_name": "expert2_dynamics",
+  "n_components": 5,
+  "n_features": 15,
+  "features": [
+    "AccG_Lateral",
+    "AccG_Vertical",
+    "AccG_Longitudinal",
+    "LocalVelocity_X",
+    "LocalVelocity_Y",
+    "LocalVelocity_Z",
+    "AngularVel_X",
+    "AngularVel_Y",
+    "AngularVel_Z",
+    "Heading",
+    "Pitch",
+    "Roll",
+    "TireLoad_FL",
+    "TireLoad_FR",
+    "TireLoad_RL"
+  ],
+  "covariance_type": "full",
+  "threshold": 20.85993551982548,
+  "threshold_percentile": 95,
+  "metrics": {
+    "train_bic": 1709532.39043851,
+    "val_bic": 367514.80953996483,
+    "train_aic": 1702921.920140112,
+    "val_aic": 361950.55689698475
+  },
+  "converged": true,
+  "train_samples": 124941,
+  "val_samples": 26763,
+  "test_samples": 26804
+}
