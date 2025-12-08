@@ -13,9 +13,6 @@ Usage:
 Author: F1 Digital Twin Team
 """
 
-from kafka_handlers import setup_anomaly_topic, delivery_callback
-from moe_inference import MoEInference
-from feature_processor import RealTimeFeatureExtractor, validate_telemetry
 import sys
 import json
 import argparse
@@ -25,9 +22,14 @@ from datetime import datetime
 from confluent_kafka import Consumer, Producer, KafkaError
 import logging
 
-# Add src to path
+# Add src to path FIRST
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'src'))
+
+# Now import local modules
+from kafka_handlers import setup_anomaly_topic, delivery_callback
+from moe_inference import MoEInference
+from feature_processor import RealTimeFeatureExtractor, validate_telemetry
 
 
 # Configure logging
@@ -404,24 +406,27 @@ class MoEAnomalyDetector:
 
 def main():
     """Main entry point."""
+    import os
+
+    # Read from environment variables with fallback to command line args
     parser = argparse.ArgumentParser(
         description='MoE Anomaly Detection Kafka Consumer')
     parser.add_argument(
         '--kafka-servers',
         type=str,
-        default='localhost:9092',
+        default=os.getenv('KAFKA_SERVERS', 'localhost:9092'),
         help='Kafka bootstrap servers'
     )
     parser.add_argument(
         '--input-topic',
         type=str,
-        default='f1-telemetry',
+        default=os.getenv('KAFKA_INPUT_TOPIC', 'f1-telemetry'),
         help='Input topic with telemetry'
     )
     parser.add_argument(
         '--output-topic',
         type=str,
-        default='f1-anomalies',
+        default=os.getenv('KAFKA_OUTPUT_TOPIC', 'f1-anomalies'),
         help='Output topic for anomalies'
     )
     parser.add_argument(
@@ -433,9 +438,9 @@ def main():
 
     args = parser.parse_args()
 
-    # Paths
-    scalers_dir = ROOT / 'data' / 'processed' / 'MoE-anomaly' / 'scalers'
-    models_dir = ROOT / 'models' / 'anomaly-detection'
+    # Paths - use environment variables if available
+    scalers_dir = Path(os.getenv('SCALERS_DIR', str(ROOT / 'data' / 'processed' / 'MoE-anomaly' / 'scalers')))
+    models_dir = Path(os.getenv('MODEL_PATH', str(ROOT / 'models' / 'anomaly-detection')))
 
     try:
         # Initialize and run detector

@@ -287,11 +287,11 @@ def main():
         graphics = open_shared_memory_try(
             "acpmf_graphics", ctypes.sizeof(SPageFileGraphics))
     except Exception as e:
-        print("❌ Could not connect to Assetto Corsa. Is the game running?")
+        print("[ERROR] Could not connect to Assetto Corsa. Is the game running?")
         print("   Error details:", repr(e))
         return
 
-    print("✅ Connected to Assetto Corsa")
+    print("[OK] Connected to Assetto Corsa")
     print(f"sizeof SPageFilePhysics = {ctypes.sizeof(SPageFilePhysics)} bytes")
     print(
         f"sizeof SPageFileGraphics = {ctypes.sizeof(SPageFileGraphics)} bytes")
@@ -372,9 +372,9 @@ def main():
                 writer.writerows(processed_records)
 
             # Report successful save with processing statistics
-            print(f"\n✅ Data saved to {filename}")
-            print(f"📊 Postprocessing applied: Distance normalized per lap")
-            print(f"🔢 Laps detected and processed: {len(lap_start_distances)}")
+            print(f"\n[OK] Data saved to {filename}")
+            print(f"[INFO] Postprocessing applied: Distance normalized per lap")
+            print(f"[INFO] Laps detected and processed: {len(lap_start_distances)}")
 
             # Show lap distance ranges for verification
             for lap_num, start_dist in lap_start_distances.items():
@@ -394,7 +394,7 @@ def main():
         pass  # SIGTERM not available on all platforms
 
     # === MAIN TELEMETRY COLLECTION LOOP ===
-    print("🚀 Starting telemetry collection... Press Ctrl+C to stop and save data\n")
+    print("[START] Starting telemetry collection... Press Ctrl+C to stop and save data\n")
     while True:
         # Read current physics data from shared memory
         physics.seek(0)

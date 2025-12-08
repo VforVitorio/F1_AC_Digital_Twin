@@ -1,6 +1,6 @@
 {
   "expert_name": "expert4_power",
-  "n_components": 5,
+  "n_components": 4,
   "n_features": 10,
   "features": [
     "Fuel",
@@ -15,16 +15,21 @@
     "DRS_Enabled"
   ],
   "covariance_type": "full",
-  "threshold": -27.998220996723607,
+  "threshold": -28.027090778980355,
   "threshold_percentile": 95,
   "metrics": {
-    "train_bic": -10031251.386777421,
-    "val_bic": -2124607.5203974005,
-    "train_aic": -10034454.39815912,
-    "val_aic": -2127303.601574927
+    "train_bic": -3389981.2709440948,
+    "val_bic": -743660.3441889638,
+    "train_aic": -3392280.4256062065,
+    "val_aic": -745550.8400018811
   },
   "converged": true,
-  "train_samples": 124941,
-  "val_samples": 26763,
-  "test_samples": 26804
+  "train_samples": 46260,
+  "val_samples": 9781,
+  "test_samples": 10084,
+  "anomaly_rates": {
+    "train": 5.0,
+    "val": 0.0,
+    "test": 6.059103530345101
+  }
 }

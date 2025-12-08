@@ -1,7 +1,7 @@
 {
   "expert_name": "expert3_control",
   "n_components": 5,
-  "n_features": 12,
+  "n_features": 13,
   "features": [
     "Speed_kmh",
     "RPM",
@@ -14,19 +14,25 @@
     "BrakeBias",
     "BrakeTemp_FL",
     "BrakeTemp_FR",
-    "BrakeTemp_RL"
+    "BrakeTemp_RL",
+    "BrakeTemp_RR"
   ],
   "covariance_type": "full",
-  "threshold": -32.55256394073701,
+  "threshold": -37.66725861986503,
   "threshold_percentile": 95,
   "metrics": {
-    "train_bic": -11242589.846554415,
-    "val_bic": -2405426.980466983,
-    "train_aic": -11247009.807549221,
-    "val_aic": -2409147.408596457
+    "train_bic": -4763193.541006052,
+    "val_bic": -1009368.8319341525,
+    "train_aic": -4767774.366264404,
+    "val_aic": -1013135.4471659728
   },
   "converged": true,
-  "train_samples": 124941,
-  "val_samples": 26763,
-  "test_samples": 26804
+  "train_samples": 46260,
+  "val_samples": 9781,
+  "test_samples": 10084,
+  "anomaly_rates": {
+    "train": 5.0,
+    "val": 4.518965340967181,
+    "test": 5.364934549781833
+  }
 }

@@ -1,7 +1,7 @@
 {
   "expert_name": "expert2_dynamics",
   "n_components": 5,
-  "n_features": 15,
+  "n_features": 16,
   "features": [
     "AccG_Lateral",
     "AccG_Vertical",
@@ -17,19 +17,25 @@
     "Roll",
     "TireLoad_FL",
     "TireLoad_FR",
-    "TireLoad_RL"
+    "TireLoad_RL",
+    "TireLoad_RR"
   ],
   "covariance_type": "full",
-  "threshold": 20.85993551982548,
+  "threshold": 22.23151120845535,
   "threshold_percentile": 95,
   "metrics": {
-    "train_bic": 1709532.39043851,
-    "val_bic": 367514.80953996483,
-    "train_aic": 1702921.920140112,
-    "val_aic": 361950.55689698475
+    "train_bic": 650523.1142812,
+    "val_bic": 134611.91411785714,
+    "train_aic": 643844.2011182599,
+    "val_aic": 129120.13160428722
   },
   "converged": true,
-  "train_samples": 124941,
-  "val_samples": 26763,
-  "test_samples": 26804
+  "train_samples": 46260,
+  "val_samples": 9781,
+  "test_samples": 10084,
+  "anomaly_rates": {
+    "train": 5.0,
+    "val": 4.6212043758306915,
+    "test": 5.206267354224514
+  }
 }

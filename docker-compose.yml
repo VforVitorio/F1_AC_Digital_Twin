@@ -126,9 +126,11 @@ services:
       - KAFKA_INPUT_TOPIC=f1-telemetry
       - KAFKA_OUTPUT_TOPIC=f1-anomalies
       - MODEL_PATH=/app/models/anomaly-detection
+      - SCALERS_DIR=/app/data/processed/MoE-anomaly/scalers
       - PYTHONPATH=/app
     volumes:
       - ./models:/app/models:ro
+      - ./data:/app/data:ro
       - ./src:/app/src:ro
       - ./scripts:/app/scripts:ro
       - ./config.py:/app/config.py:ro

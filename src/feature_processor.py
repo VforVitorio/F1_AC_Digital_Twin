@@ -3,9 +3,10 @@ Real-time Feature Processor for MoE Anomaly Detection
 
 This module handles feature extraction and normalization for the 4-expert MoE system:
 - Expert 1: Tire Dynamics (20 features)
-- Expert 2: Vehicle Dynamics (15 features)
-- Expert 3: Driver Control (12 features)
+- Expert 2: Vehicle Dynamics (16 features)
+- Expert 3: Driver Control (13 features)
 - Expert 4: Power Systems (10 features)
+Total: 59 features
 
 Author: F1 Digital Twin Team
 """
@@ -43,12 +44,12 @@ class RealTimeFeatureExtractor:
             'LocalVelocity_X', 'LocalVelocity_Y', 'LocalVelocity_Z',
             'AngularVel_X', 'AngularVel_Y', 'AngularVel_Z',
             'Heading', 'Pitch', 'Roll',
-            'TireLoad_FL', 'TireLoad_FR', 'TireLoad_RL', 'TireLoad_RR'
+            'TireLoad_FL', 'TireLoad_FR', 'TireLoad_RL', 'TireLoad_RR'  # 16 features
         ],
         'expert3_control': [
             'Speed_kmh', 'RPM', 'Throttle', 'Brake', 'Steering', 'Gear',
             'TC_InAction', 'ABS_InAction', 'BrakeBias',
-            'BrakeTemp_FL', 'BrakeTemp_FR', 'BrakeTemp_RL', 'BrakeTemp_RR'
+            'BrakeTemp_FL', 'BrakeTemp_FR', 'BrakeTemp_RL', 'BrakeTemp_RR'  # 13 features
         ],
         'expert4_power': [
             'Fuel', 'TurboBoost', 'EngineTemp_Oil', 'CurrentMaxRpm', 'EngineBrake',
