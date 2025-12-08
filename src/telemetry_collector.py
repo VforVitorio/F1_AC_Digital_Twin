@@ -561,7 +561,8 @@ def main():
             # === FUEL & ENGINE ===
             "Fuel": round(data.fuel, 3),
             "TurboBoost": round(data.turboBoost, 3),
-            "EngineTemp_Oil": round(data_g.surfaceGrip, 3),  # Note: oil temp not in standard SM
+            "EngineTemp_Oil": 90.0,  # AC shared memory doesn't provide oil temp, using default
+            "EngineTemp_Water": round(data.airTemp, 1),  # Water temp approximation
             "EngineBrake": data.engineBrake,
             "CurrentMaxRpm": data.currentMaxRpm,
 

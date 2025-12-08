@@ -43,12 +43,12 @@ class RealTimeFeatureExtractor:
             'LocalVelocity_X', 'LocalVelocity_Y', 'LocalVelocity_Z',
             'AngularVel_X', 'AngularVel_Y', 'AngularVel_Z',
             'Heading', 'Pitch', 'Roll',
-            'TireLoad_FL', 'TireLoad_FR', 'TireLoad_RL'
+            'TireLoad_FL', 'TireLoad_FR', 'TireLoad_RL', 'TireLoad_RR'
         ],
         'expert3_control': [
             'Speed_kmh', 'RPM', 'Throttle', 'Brake', 'Steering', 'Gear',
             'TC_InAction', 'ABS_InAction', 'BrakeBias',
-            'BrakeTemp_FL', 'BrakeTemp_FR', 'BrakeTemp_RL'
+            'BrakeTemp_FL', 'BrakeTemp_FR', 'BrakeTemp_RL', 'BrakeTemp_RR'
         ],
         'expert4_power': [
             'Fuel', 'TurboBoost', 'EngineTemp_Oil', 'CurrentMaxRpm', 'EngineBrake',
@@ -100,10 +100,15 @@ class RealTimeFeatureExtractor:
         'heading': 'Heading',
         'pitch': 'Pitch',
         'roll': 'Roll',
-        # Tire load (not directly available, use suspension travel as proxy)
-        'suspension_travel_fl': 'TireLoad_FL',
-        'suspension_travel_fr': 'TireLoad_FR',
-        'suspension_travel_rl': 'TireLoad_RL',
+        # Tire load (map from wheel_load or tire_load)
+        'wheel_load_fl': 'TireLoad_FL',
+        'wheel_load_fr': 'TireLoad_FR',
+        'wheel_load_rl': 'TireLoad_RL',
+        'wheel_load_rr': 'TireLoad_RR',
+        'tire_load_fl': 'TireLoad_FL',
+        'tire_load_fr': 'TireLoad_FR',
+        'tire_load_rl': 'TireLoad_RL',
+        'tire_load_rr': 'TireLoad_RR',
         # Control
         'speed_kmh': 'Speed_kmh',
         'rpm': 'RPM',
@@ -119,6 +124,7 @@ class RealTimeFeatureExtractor:
         'brake_temp_fl': 'BrakeTemp_FL',
         'brake_temp_fr': 'BrakeTemp_FR',
         'brake_temp_rl': 'BrakeTemp_RL',
+        'brake_temp_rr': 'BrakeTemp_RR',
         # Power
         'fuel': 'Fuel',
         'turbo_boost': 'TurboBoost',
@@ -140,9 +146,7 @@ class RealTimeFeatureExtractor:
 
     # Features that have defaults/proxies and don't need to be in the input
     SYNTHETIC_FEATURES = {
-        'SlipAngle_FL', 'SlipAngle_FR', 'SlipAngle_RL', 'SlipAngle_RR',
-        'TireLoad_FL', 'TireLoad_FR', 'TireLoad_RL',
-        'EngineTemp_Oil', 'CurrentMaxRpm', 'EngineBrake'
+        'EngineTemp_Oil',  # AC Shared Memory doesn't provide this, using default
     }
 
     def __init__(self, scalers_dir: str):
@@ -211,12 +215,13 @@ class RealTimeFeatureExtractor:
             normalized['SlipAngle_RR'] = normalized.get(
                 'SlipRatio_RR', 0.0) * 0.1
 
-        # TireLoad - use suspension travel or default
+        # TireLoad - use wheel_load if available
         if 'TireLoad_FL' not in normalized:
-            # Use ride height as proxy or default to 1.0 (normalized load)
-            normalized['TireLoad_FL'] = telemetry.get('ride_height_front', 1.0)
-            normalized['TireLoad_FR'] = telemetry.get('ride_height_front', 1.0)
-            normalized['TireLoad_RL'] = telemetry.get('ride_height_rear', 1.0)
+            # Try to get from WheelLoad fields (from telemetry_collector)
+            normalized['TireLoad_FL'] = telemetry.get('WheelLoad_FL', telemetry.get('wheel_load_fl', 2500.0))
+            normalized['TireLoad_FR'] = telemetry.get('WheelLoad_FR', telemetry.get('wheel_load_fr', 2500.0))
+            normalized['TireLoad_RL'] = telemetry.get('WheelLoad_RL', telemetry.get('wheel_load_rl', 2300.0))
+            normalized['TireLoad_RR'] = telemetry.get('WheelLoad_RR', telemetry.get('wheel_load_rr', 2300.0))
 
         # Engine-related fields with defaults
         if 'EngineTemp_Oil' not in normalized:
