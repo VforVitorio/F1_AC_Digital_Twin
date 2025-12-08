@@ -2,8 +2,8 @@
 """
 Assetto Corsa Telemetry Collector
 
-This script connects to Assetto Corsa's shared memory interface to collect 
-real-time telemetry data during racing sessions. The data is saved to CSV 
+This script connects to Assetto Corsa's shared memory interface to collect
+real-time telemetry data during racing sessions. The data is saved to CSV
 files with intelligent postprocessing.
 
 Key Features:
@@ -12,10 +12,11 @@ Key Features:
 - Distance normalization: each lap starts at 0m for proper analysis
 - Preserves both original AC data and normalized data
 - Graceful shutdown with Ctrl+C saves all collected data
+- Optional Kafka streaming for real-time processing
 
 Distance Postprocessing:
-The script addresses AC's cumulative distance measurement by creating 
-lap-relative distances. Instead of distances like 16,984m → 23,547m for 
+The script addresses AC's cumulative distance measurement by creating
+lap-relative distances. Instead of distances like 16,984m → 23,547m for
 a lap, the output shows 0m → 6,563m, making lap-by-lap analysis possible.
 """
 import mmap
@@ -25,6 +26,8 @@ import os
 import csv
 import signal
 import sys
+import json
+import argparse
 from datetime import datetime
 # ------------------------------
 # Config
@@ -35,6 +38,12 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 TELEMETRY_DIR = os.path.join(project_root, 'data', 'raw')
 READ_INTERVAL = 0.1  # seconds between reads
+
+# Kafka configuration (set by command line args)
+KAFKA_ENABLED = False
+KAFKA_SERVERS = 'localhost:9092'
+KAFKA_TOPIC = 'f1-telemetry'
+kafka_producer = None
 
 # ------------------------------
 # Assetto Corsa Structures (corrected)
@@ -252,6 +261,72 @@ def ms_to_timestr(ms):
     except Exception:
         return ""
 
+
+def setup_kafka_producer(servers):
+    """
+    Setup Kafka producer for streaming telemetry.
+
+    Args:
+        servers (str): Kafka bootstrap servers
+
+    Returns:
+        Producer: Configured Kafka producer or None if failed
+    """
+    try:
+        from confluent_kafka import Producer
+
+        config = {
+            'bootstrap.servers': servers,
+            'client.id': 'ac-telemetry-collector'
+        }
+
+        producer = Producer(config)
+        print(f"[OK] Connected to Kafka: {servers}")
+        print(f"[OK] Publishing to topic: {KAFKA_TOPIC}")
+        return producer
+    except ImportError:
+        print("[ERROR] confluent-kafka not installed. Run: pip install confluent-kafka")
+        return None
+    except Exception as e:
+        print(f"[ERROR] Failed to connect to Kafka: {e}")
+        return None
+
+
+def kafka_delivery_callback(err, msg):
+    """Callback for Kafka message delivery reports."""
+    if err:
+        print(f"[ERROR] Kafka delivery failed: {err}")
+
+
+def send_to_kafka(record):
+    """
+    Send telemetry record to Kafka.
+
+    Args:
+        record (dict): Telemetry data dictionary
+    """
+    global kafka_producer
+
+    if not kafka_producer:
+        return
+
+    try:
+        # Convert to JSON
+        message = json.dumps(record)
+
+        # Send to Kafka
+        kafka_producer.produce(
+            KAFKA_TOPIC,
+            value=message.encode('utf-8'),
+            callback=kafka_delivery_callback
+        )
+
+        # Poll for delivery reports (non-blocking)
+        kafka_producer.poll(0)
+
+    except Exception as e:
+        print(f"[ERROR] Failed to send to Kafka: {e}")
+
 # ------------------------------
 # Main
 # ------------------------------
@@ -266,10 +341,12 @@ def main():
     loop. The collected data is processed in real-time and saved on exit.
 
     Process Flow:
-    1. Connect to AC's physics and graphics shared memory
-    2. Set up signal handlers for Ctrl+C graceful shutdown
-    3. Enter main collection loop reading data every READ_INTERVAL seconds
-    4. Process and normalize data on exit via save_and_exit()
+    1. Parse command line arguments
+    2. Setup Kafka producer (if enabled)
+    3. Connect to AC's physics and graphics shared memory
+    4. Set up signal handlers for Ctrl+C graceful shutdown
+    5. Enter main collection loop reading data every READ_INTERVAL seconds
+    6. Stream to Kafka (if enabled) and/or save to CSV on exit
 
     Data Collection:
     - Physics data: speed, RPM, throttle, brake, steering, gear
@@ -281,6 +358,29 @@ def main():
     - Signal handling for clean shutdown and data preservation
     - Robust data decoding with fallbacks for corrupted memory
     """
+    global KAFKA_ENABLED, KAFKA_SERVERS, KAFKA_TOPIC, kafka_producer
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Assetto Corsa Telemetry Collector')
+    parser.add_argument('--kafka', action='store_true', help='Enable Kafka streaming')
+    parser.add_argument('--kafka-servers', type=str, default='localhost:9092',
+                        help='Kafka bootstrap servers (default: localhost:9092)')
+    parser.add_argument('--kafka-topic', type=str, default='f1-telemetry',
+                        help='Kafka topic name (default: f1-telemetry)')
+    args = parser.parse_args()
+
+    KAFKA_ENABLED = args.kafka
+    KAFKA_SERVERS = args.kafka_servers
+    KAFKA_TOPIC = args.kafka_topic
+
+    # Setup Kafka if enabled
+    if KAFKA_ENABLED:
+        kafka_producer = setup_kafka_producer(KAFKA_SERVERS)
+        if not kafka_producer:
+            print("[WARNING] Kafka setup failed, continuing without streaming")
+            KAFKA_ENABLED = False
+
+    # Connect to Assetto Corsa
     try:
         physics = open_shared_memory_try(
             "acpmf_physics", ctypes.sizeof(SPageFilePhysics))
@@ -641,13 +741,18 @@ def main():
 
         records.append(record)
 
+        # Send to Kafka if enabled
+        if KAFKA_ENABLED:
+            send_to_kafka(record)
+
         # Display real-time telemetry summary with enhanced data
+        kafka_status = " | Kafka: ✓" if KAFKA_ENABLED else ""
         print(
             f"Speed: {data.speedKmh:.1f} km/h | RPM: {data.rpms} | Gear: {gear} | "
             f"Throttle: {data.gas:.2f} | Brake: {data.brake:.2f} | "
             f"G-Force: {data.accG[0]:.2f}lat {data.accG[2]:.2f}lon | "
             f"Tire: FL {data.tyreTemp[0]:.0f}°C FR {data.tyreTemp[1]:.0f}°C | "
-            f"Lap: {data_g.completedLaps} ({current_lap_time})"
+            f"Lap: {data_g.completedLaps} ({current_lap_time}){kafka_status}"
         )
 
         # Wait before next reading cycle

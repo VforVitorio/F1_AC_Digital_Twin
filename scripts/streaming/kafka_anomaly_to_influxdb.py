@@ -17,6 +17,7 @@ import sys
 import json
 import argparse
 import time
+import os
 from pathlib import Path
 from datetime import datetime
 from confluent_kafka import Consumer, KafkaError
@@ -293,44 +294,44 @@ def main():
     parser.add_argument(
         '--kafka-servers',
         type=str,
-        default='localhost:9092',
-        help='Kafka bootstrap servers'
+        default=os.getenv('KAFKA_SERVERS', 'localhost:9092'),
+        help='Kafka bootstrap servers (env: KAFKA_SERVERS)'
     )
     parser.add_argument(
         '--topic',
         type=str,
-        default='f1-anomalies',
-        help='Kafka topic with anomalies'
+        default=os.getenv('KAFKA_TOPIC', 'f1-anomalies'),
+        help='Kafka topic with anomalies (env: KAFKA_TOPIC)'
     )
     parser.add_argument(
         '--consumer-group',
         type=str,
-        default='anomaly-influxdb-writer',
-        help='Consumer group ID'
+        default=os.getenv('KAFKA_CONSUMER_GROUP', 'anomaly-influxdb-writer'),
+        help='Consumer group ID (env: KAFKA_CONSUMER_GROUP)'
     )
     parser.add_argument(
         '--influx-url',
         type=str,
-        default='http://localhost:8086',
-        help='InfluxDB URL'
+        default=os.getenv('INFLUX_URL', 'http://localhost:8086'),
+        help='InfluxDB URL (env: INFLUX_URL)'
     )
     parser.add_argument(
         '--influx-token',
         type=str,
-        default='f1-telemetry-token-super-secret',
-        help='InfluxDB authentication token'
+        default=os.getenv('INFLUX_TOKEN', 'f1-telemetry-token-super-secret'),
+        help='InfluxDB authentication token (env: INFLUX_TOKEN)'
     )
     parser.add_argument(
         '--influx-org',
         type=str,
-        default='f1-org',
-        help='InfluxDB organization'
+        default=os.getenv('INFLUX_ORG', 'f1-org'),
+        help='InfluxDB organization (env: INFLUX_ORG)'
     )
     parser.add_argument(
         '--influx-bucket',
         type=str,
-        default='f1-anomalies',
-        help='InfluxDB bucket for anomalies'
+        default=os.getenv('INFLUX_BUCKET', 'f1-anomalies'),
+        help='InfluxDB bucket for anomalies (env: INFLUX_BUCKET)'
     )
 
     args = parser.parse_args()
