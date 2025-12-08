@@ -25,15 +25,13 @@ import json
 
 # Add src to path
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / 'src'))
-
-from feature_processor import RealTimeFeatureExtractor, validate_telemetry
-from moe_inference import MoEInference
 
 
 class MoEPipelineTester:
     """
-    Offline tester for MoE anomaly detection pipeline.
+    Offline tester for the MoE anomaly detection pipeline.
     """
 
     def __init__(self, scalers_dir: str, models_dir: str):
@@ -44,14 +42,18 @@ class MoEPipelineTester:
             scalers_dir: Path to scalers directory
             models_dir: Path to models directory
         """
+        from src.feature_processor import RealTimeFeatureExtractor, validate_telemetry
+        from src.moe_inference import MoEInference
+
         print("="*70)
         print("INITIALIZING MoE PIPELINE TESTER")
         print("="*70)
 
         self.feature_extractor = RealTimeFeatureExtractor(scalers_dir)
         self.moe = MoEInference(models_dir)
+        self.validate_telemetry = validate_telemetry
 
-        print("✅ Pipeline initialized successfully\n")
+        print("[OK] Pipeline initialized successfully\n")
 
     def load_telemetry(self, csv_path: str, limit: int = None) -> pd.DataFrame:
         """
@@ -103,10 +105,11 @@ class MoEPipelineTester:
 
             try:
                 # 1. Validate telemetry
-                is_valid, missing = validate_telemetry(telemetry)
+                is_valid, missing = self.validate_telemetry(telemetry)
 
                 if not is_valid:
-                    print(f"⚠️  Sample {idx}: Missing features: {missing[:5]}...")
+                    print(
+                        f"⚠️  Sample {idx}: Missing features: {missing[:5]}...")
                     continue
 
                 # 2. Extract and normalize features
@@ -140,7 +143,8 @@ class MoEPipelineTester:
                 if verbose and (idx % update_interval == 0 or idx == n_samples - 1):
                     progress = (idx + 1) / n_samples * 100
                     anomaly_count = sum(r['is_anomaly'] for r in results)
-                    anomaly_rate = anomaly_count / len(results) * 100 if results else 0
+                    anomaly_rate = anomaly_count / \
+                        len(results) * 100 if results else 0
                     print(f"Progress: {progress:>5.1f}% | "
                           f"Samples: {len(results):>6} | "
                           f"Anomalies: {anomaly_count:>5} ({anomaly_rate:.1f}%)")
@@ -197,7 +201,8 @@ class MoEPipelineTester:
         ax.set_title('Anomaly Score Timeline', fontsize=14, fontweight='bold')
         ax.grid(True, alpha=0.3)
         plt.tight_layout()
-        plt.savefig(output_dir / 'anomaly_timeline.png', dpi=150, bbox_inches='tight')
+        plt.savefig(output_dir / 'anomaly_timeline.png',
+                    dpi=150, bbox_inches='tight')
         plt.close()
         print("✅ Generated: anomaly_timeline.png")
 
@@ -205,18 +210,25 @@ class MoEPipelineTester:
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
         axes = axes.flatten()
 
+        # Mapping from expert index to threshold key
+        expert_type_map = {
+            'expert1': 'tire',
+            'expert2': 'dynamics',
+            'expert3': 'control',
+            'expert4': 'power'
+        }
+
         for idx, expert in enumerate(['expert1', 'expert2', 'expert3', 'expert4']):
             ax = axes[idx]
             score_col = f'{expert}_score'
 
             # Plot distribution
-            results_df[score_col].hist(bins=50, alpha=0.7, ax=ax, edgecolor='black')
+            results_df[score_col].hist(
+                bins=50, alpha=0.7, ax=ax, edgecolor='black')
 
             # Add threshold line
-            threshold = self.moe.thresholds[f'{expert}_tire'] if 'tire' in expert \
-                        else self.moe.thresholds[f'{expert}_dynamics'] if 'dynamics' in expert \
-                        else self.moe.thresholds[f'{expert}_control'] if 'control' in expert \
-                        else self.moe.thresholds[f'{expert}_power']
+            expert_type = expert_type_map[expert]
+            threshold = self.moe.thresholds[f'{expert}_{expert_type}']
 
             ax.axvline(threshold, color='r', linestyle='--', linewidth=2,
                        label=f'Threshold: {threshold:.2f}')
@@ -229,7 +241,8 @@ class MoEPipelineTester:
             ax.grid(True, alpha=0.3, axis='y')
 
         plt.tight_layout()
-        plt.savefig(output_dir / 'expert_scores.png', dpi=150, bbox_inches='tight')
+        plt.savefig(output_dir / 'expert_scores.png',
+                    dpi=150, bbox_inches='tight')
         plt.close()
         print("✅ Generated: expert_scores.png")
 
@@ -240,12 +253,15 @@ class MoEPipelineTester:
         avg_weights = results_df[weight_cols].mean()
 
         colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
-        bars = ax.bar(range(4), avg_weights, color=colors, edgecolor='black', linewidth=1.5)
+        bars = ax.bar(range(4), avg_weights, color=colors,
+                      edgecolor='black', linewidth=1.5)
 
         ax.set_xticks(range(4))
-        ax.set_xticklabels(['Tire', 'Dynamics', 'Control', 'Power'], fontsize=12)
+        ax.set_xticklabels(
+            ['Tire', 'Dynamics', 'Control', 'Power'], fontsize=12)
         ax.set_ylabel('Average Weight', fontsize=12)
-        ax.set_title('Average Expert Weights (Attention)', fontsize=14, fontweight='bold')
+        ax.set_title('Average Expert Weights (Attention)',
+                     fontsize=14, fontweight='bold')
         ax.set_ylim(0, max(avg_weights) * 1.2)
         ax.grid(True, alpha=0.3, axis='y')
 
@@ -256,7 +272,8 @@ class MoEPipelineTester:
                     f'{weight:.3f}', ha='center', va='bottom', fontsize=11)
 
         plt.tight_layout()
-        plt.savefig(output_dir / 'expert_weights.png', dpi=150, bbox_inches='tight')
+        plt.savefig(output_dir / 'expert_weights.png',
+                    dpi=150, bbox_inches='tight')
         plt.close()
         print("✅ Generated: expert_weights.png")
 
@@ -271,7 +288,8 @@ class MoEPipelineTester:
             ax1.bar(range(len(anomaly_counts)), anomaly_counts.values, color='#d62728',
                     edgecolor='black', linewidth=1.5)
             ax1.set_xticks(range(len(anomaly_counts)))
-            ax1.set_xticklabels(anomaly_counts.index, rotation=45, ha='right', fontsize=10)
+            ax1.set_xticklabels(anomaly_counts.index,
+                                rotation=45, ha='right', fontsize=10)
             ax1.set_ylabel('Count', fontsize=12)
             ax1.set_title('Anomaly Types', fontsize=13, fontweight='bold')
             ax1.grid(True, alpha=0.3, axis='y')
@@ -279,7 +297,8 @@ class MoEPipelineTester:
             # Severity
             severity_counts = anomalies['severity'].value_counts()
             severity_order = ['low', 'medium', 'high']
-            severity_counts = severity_counts.reindex(severity_order, fill_value=0)
+            severity_counts = severity_counts.reindex(
+                severity_order, fill_value=0)
 
             colors_severity = ['#2ca02c', '#ff7f0e', '#d62728']
             ax2.bar(range(len(severity_counts)), severity_counts.values,
@@ -291,7 +310,8 @@ class MoEPipelineTester:
             ax2.grid(True, alpha=0.3, axis='y')
 
             plt.tight_layout()
-            plt.savefig(output_dir / 'anomaly_analysis.png', dpi=150, bbox_inches='tight')
+            plt.savefig(output_dir / 'anomaly_analysis.png',
+                        dpi=150, bbox_inches='tight')
             plt.close()
             print("✅ Generated: anomaly_analysis.png")
 
@@ -329,11 +349,15 @@ class MoEPipelineTester:
 
 def main():
     """Main testing function."""
-    parser = argparse.ArgumentParser(description='Test MoE anomaly detection pipeline')
+    parser = argparse.ArgumentParser(
+        description='Test MoE anomaly detection pipeline')
     parser.add_argument('--input', type=str, help='Path to input CSV file')
-    parser.add_argument('--limit', type=int, default=None, help='Limit number of samples')
-    parser.add_argument('--visualize', action='store_true', help='Generate visualizations')
-    parser.add_argument('--output-dir', type=str, default=None, help='Output directory')
+    parser.add_argument('--limit', type=int, default=None,
+                        help='Limit number of samples')
+    parser.add_argument('--visualize', action='store_true',
+                        help='Generate visualizations')
+    parser.add_argument('--output-dir', type=str,
+                        default=None, help='Output directory')
 
     args = parser.parse_args()
 
@@ -380,7 +404,8 @@ def main():
         print("SUMMARY REPORT")
         print("="*70)
         print(f"Total Samples: {report['total_samples']}")
-        print(f"Anomalies Detected: {report['anomalies_detected']} ({report['anomaly_rate']*100:.2f}%)")
+        print(
+            f"Anomalies Detected: {report['anomalies_detected']} ({report['anomaly_rate']*100:.2f}%)")
         print(f"\nAnomaly Types:")
         for atype, count in report['anomaly_types'].items():
             print(f"  {atype}: {count}")

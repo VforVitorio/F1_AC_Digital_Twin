@@ -57,6 +57,94 @@ class RealTimeFeatureExtractor:
         ]
     }
 
+    # Mapping from producer field names (snake_case) to expected names (CamelCase)
+    FIELD_NAME_MAPPING = {
+        # Tire temperatures
+        'tire_temp_fl_avg': 'TireTemp_FL_Avg',
+        'tire_temp_fr_avg': 'TireTemp_FR_Avg',
+        'tire_temp_rl_avg': 'TireTemp_RL_Avg',
+        'tire_temp_rr_avg': 'TireTemp_RR_Avg',
+        # Tire wear
+        'tire_wear_fl': 'TireWear_FL',
+        'tire_wear_fr': 'TireWear_FR',
+        'tire_wear_rl': 'TireWear_RL',
+        'tire_wear_rr': 'TireWear_RR',
+        # Tire pressure
+        'tire_pressure_fl': 'TirePressure_FL',
+        'tire_pressure_fr': 'TirePressure_FR',
+        'tire_pressure_rl': 'TirePressure_RL',
+        'tire_pressure_rr': 'TirePressure_RR',
+        # Slip ratio (wheel_slip in producer)
+        'wheel_slip_fl': 'SlipRatio_FL',
+        'wheel_slip_fr': 'SlipRatio_FR',
+        'wheel_slip_rl': 'SlipRatio_RL',
+        'wheel_slip_rr': 'SlipRatio_RR',
+        # Slip angle (not available directly, use wheel_slip as proxy)
+        'slip_angle_fl': 'SlipAngle_FL',
+        'slip_angle_fr': 'SlipAngle_FR',
+        'slip_angle_rl': 'SlipAngle_RL',
+        'slip_angle_rr': 'SlipAngle_RR',
+        # G-forces
+        'accg_lateral': 'AccG_Lateral',
+        'accg_vertical': 'AccG_Vertical',
+        'accg_longitudinal': 'AccG_Longitudinal',
+        # Local velocity
+        'local_velocity_x': 'LocalVelocity_X',
+        'local_velocity_y': 'LocalVelocity_Y',
+        'local_velocity_z': 'LocalVelocity_Z',
+        # Angular velocity
+        'angular_vel_x': 'AngularVel_X',
+        'angular_vel_y': 'AngularVel_Y',
+        'angular_vel_z': 'AngularVel_Z',
+        # Orientation
+        'heading': 'Heading',
+        'pitch': 'Pitch',
+        'roll': 'Roll',
+        # Tire load (not directly available, use suspension travel as proxy)
+        'suspension_travel_fl': 'TireLoad_FL',
+        'suspension_travel_fr': 'TireLoad_FR',
+        'suspension_travel_rl': 'TireLoad_RL',
+        # Control
+        'speed_kmh': 'Speed_kmh',
+        'rpm': 'RPM',
+        'throttle': 'Throttle',
+        'brake': 'Brake',
+        'steering': 'Steering',
+        'gear': 'Gear',
+        # Assist systems
+        'tc_in_action': 'TC_InAction',
+        'abs_in_action': 'ABS_InAction',
+        'brake_bias': 'BrakeBias',
+        # Brake temps
+        'brake_temp_fl': 'BrakeTemp_FL',
+        'brake_temp_fr': 'BrakeTemp_FR',
+        'brake_temp_rl': 'BrakeTemp_RL',
+        # Power
+        'fuel': 'Fuel',
+        'turbo_boost': 'TurboBoost',
+        'engine_temp_oil': 'EngineTemp_Oil',
+        'current_max_rpm': 'CurrentMaxRpm',
+        'engine_brake': 'EngineBrake',
+        'kers_charge': 'KERS_Charge',
+        'kers_current_kj': 'KERS_CurrentKJ',
+        'ers_power_level': 'ERS_PowerLevel',
+        'ers_recovery_level': 'ERS_RecoveryLevel',
+        'drs_enabled': 'DRS_Enabled',
+        # Metadata
+        'completed_laps': 'CompletedLaps',
+        'distance': 'Distance',
+        # Additional lowercase mappings for fields that might come in different formats
+        'speed_kmh': 'Speed_kmh',
+        'speedkmh': 'Speed_kmh',
+    }
+
+    # Features that have defaults/proxies and don't need to be in the input
+    SYNTHETIC_FEATURES = {
+        'SlipAngle_FL', 'SlipAngle_FR', 'SlipAngle_RL', 'SlipAngle_RR',
+        'TireLoad_FL', 'TireLoad_FR', 'TireLoad_RL',
+        'EngineTemp_Oil', 'CurrentMaxRpm', 'EngineBrake'
+    }
+
     def __init__(self, scalers_dir: str):
         """
         Initialize the feature extractor.
@@ -91,6 +179,55 @@ class RealTimeFeatureExtractor:
 
             logger.info(f"Loaded scaler for {expert_name}: {scaler_path.name}")
 
+    def _normalize_field_names(self, telemetry: Dict[str, float]) -> Dict[str, float]:
+        """
+        Normalize field names from producer format to expected format.
+
+        Args:
+            telemetry: Raw telemetry with snake_case field names
+
+        Returns:
+            Telemetry with normalized field names (CamelCase)
+        """
+        normalized = {}
+
+        for key, value in telemetry.items():
+            # Check if this key needs mapping
+            if key in self.FIELD_NAME_MAPPING:
+                normalized[self.FIELD_NAME_MAPPING[key]] = value
+            else:
+                # Keep original key (might already be in correct format)
+                normalized[key] = value
+
+        # Handle missing fields with sensible defaults or proxies
+        # SlipAngle - use wheel_slip as proxy if not available
+        if 'SlipAngle_FL' not in normalized and 'SlipRatio_FL' in normalized:
+            normalized['SlipAngle_FL'] = normalized.get(
+                'SlipRatio_FL', 0.0) * 0.1
+            normalized['SlipAngle_FR'] = normalized.get(
+                'SlipRatio_FR', 0.0) * 0.1
+            normalized['SlipAngle_RL'] = normalized.get(
+                'SlipRatio_RL', 0.0) * 0.1
+            normalized['SlipAngle_RR'] = normalized.get(
+                'SlipRatio_RR', 0.0) * 0.1
+
+        # TireLoad - use suspension travel or default
+        if 'TireLoad_FL' not in normalized:
+            # Use ride height as proxy or default to 1.0 (normalized load)
+            normalized['TireLoad_FL'] = telemetry.get('ride_height_front', 1.0)
+            normalized['TireLoad_FR'] = telemetry.get('ride_height_front', 1.0)
+            normalized['TireLoad_RL'] = telemetry.get('ride_height_rear', 1.0)
+
+        # Engine-related fields with defaults
+        if 'EngineTemp_Oil' not in normalized:
+            normalized['EngineTemp_Oil'] = 90.0  # Normal oil temp
+        if 'CurrentMaxRpm' not in normalized:
+            normalized['CurrentMaxRpm'] = telemetry.get('rpm', 10000)
+        if 'EngineBrake' not in normalized:
+            normalized['EngineBrake'] = 0.0
+
+        return normalized
+
     def extract_features(
         self,
         telemetry: Dict[str, float],
@@ -111,6 +248,9 @@ class RealTimeFeatureExtractor:
             >>> features = extractor.extract_features(telemetry)
             >>> features['expert1_tire']  # array of 20 tire features
         """
+        # Normalize field names first
+        telemetry = self._normalize_field_names(telemetry)
+
         if expert_name:
             experts_to_process = [expert_name]
         else:
@@ -221,7 +361,8 @@ class RealTimeFeatureExtractor:
                 - Dictionary mapping expert names to 2D arrays (n_samples, n_features)
                 - List of indices that failed processing
         """
-        results_by_expert = {expert: [] for expert in self.EXPERT_FEATURES.keys()}
+        results_by_expert = {expert: []
+                             for expert in self.EXPERT_FEATURES.keys()}
         failed_indices = []
 
         for idx, telemetry in enumerate(telemetry_batch):
@@ -270,13 +411,24 @@ def validate_telemetry(telemetry: Dict[str, float]) -> Tuple[bool, List[str]]:
     Returns:
         Tuple of (is_valid, list_of_missing_features)
     """
+    # Create reverse mapping (expected -> producer)
+    reverse_mapping = {
+        v: k for k, v in RealTimeFeatureExtractor.FIELD_NAME_MAPPING.items()}
+
     all_required_features = set()
     for features in RealTimeFeatureExtractor.EXPERT_FEATURES.values():
         all_required_features.update(features)
 
+    # Remove synthetic features that will be generated from proxies/defaults
+    synthetic_features = getattr(
+        RealTimeFeatureExtractor, 'SYNTHETIC_FEATURES', set())
+    required_from_input = all_required_features - synthetic_features
+
     missing_features = []
-    for feature in all_required_features:
-        if feature not in telemetry:
+    for feature in required_from_input:
+        # Check if feature exists directly OR via mapped name
+        producer_name = reverse_mapping.get(feature, None)
+        if feature not in telemetry and (producer_name is None or producer_name not in telemetry):
             missing_features.append(feature)
 
     is_valid = len(missing_features) == 0

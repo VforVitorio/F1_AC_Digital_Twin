@@ -112,6 +112,58 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards
       - ./grafana/config/grafana.ini:/etc/grafana/grafana.ini
 
+  # MoE Anomaly Detector - Consumes telemetry, runs inference, publishes anomalies
+  moe-anomaly-detector:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.moe
+    container_name: moe-detector
+    depends_on:
+      - broker
+      - schema-registry
+    environment:
+      - KAFKA_SERVERS=broker:29092
+      - KAFKA_INPUT_TOPIC=f1-telemetry
+      - KAFKA_OUTPUT_TOPIC=f1-anomalies
+      - MODEL_PATH=/app/models/anomaly-detection
+      - PYTHONPATH=/app
+    volumes:
+      - ./models:/app/models:ro
+      - ./src:/app/src:ro
+      - ./scripts:/app/scripts:ro
+      - ./config.py:/app/config.py:ro
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    networks:
+      - default
+
+  # Anomaly to InfluxDB Writer - Persists anomalies for Grafana visualization
+  anomaly-to-influx:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.anomaly_consumer
+    container_name: anomaly-influx-writer
+    depends_on:
+      - broker
+      - influxdb
+    environment:
+      - KAFKA_SERVERS=broker:29092
+      - KAFKA_TOPIC=f1-anomalies
+      - KAFKA_CONSUMER_GROUP=anomaly-influxdb-writer
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_TOKEN=f1-telemetry-token-super-secret
+      - INFLUX_ORG=f1-org
+      - INFLUX_BUCKET=f1-anomalies
+      - PYTHONPATH=/app
+    volumes:
+      - ./src:/app/src:ro
+      - ./scripts:/app/scripts:ro
+      - ./config.py:/app/config.py:ro
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    networks:
+      - default
+
 volumes:
   influxdb_data:
   grafana_data:

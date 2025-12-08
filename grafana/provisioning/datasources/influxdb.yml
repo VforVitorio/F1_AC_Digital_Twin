@@ -14,3 +14,18 @@ datasources:
     isDefault: true
     editable: true
     uid: influxdb-f1
+
+  - name: InfluxDB-Anomalies
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    jsonData:
+      version: Flux
+      organization: f1-org
+      defaultBucket: f1-anomalies
+      tlsSkipVerify: true
+    secureJsonData:
+      token: f1-telemetry-token-super-secret
+    isDefault: false
+    editable: true
+    uid: influxdb-anomalies

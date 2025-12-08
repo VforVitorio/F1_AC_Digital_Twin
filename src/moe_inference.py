@@ -82,7 +82,8 @@ class MoEInference:
             model_path = self.models_dir / model_filename
 
             if not model_path.exists():
-                raise FileNotFoundError(f"Expert model not found: {model_path}")
+                raise FileNotFoundError(
+                    f"Expert model not found: {model_path}")
 
             with open(model_path, 'rb') as f:
                 self.experts[expert_name] = pickle.load(f)
@@ -179,7 +180,8 @@ class MoEInference:
 
         # Softmax with temperature
         temperature = 10.0
-        exp_scores = np.exp(-scores / temperature)  # Negative because higher score = more anomalous
+        # Negative because higher score = more anomalous
+        exp_scores = np.exp(-scores / temperature)
         softmax_weights = exp_scores / exp_scores.sum()
 
         weights = {
@@ -218,13 +220,10 @@ class MoEInference:
         for expert_name, score in expert_scores.items():
             threshold = self.thresholds[expert_name]
 
-            # Different experts have different threshold directions
-            if expert_name in ['expert1_tire', 'expert3_control', 'expert4_power']:
-                # For these experts, anomaly = score < threshold (more negative)
-                is_anomaly = score < threshold
-            else:  # expert2_dynamics
-                # For dynamics expert, anomaly = score > threshold
-                is_anomaly = score > threshold
+            # Anomaly = score > threshold (above 95th percentile)
+            # This is consistent with how thresholds were computed during training:
+            # threshold = np.percentile(scores, 95) -> anomaly if score > threshold
+            is_anomaly = score > threshold
 
             if is_anomaly:
                 anomalous_experts.append(expert_name)
@@ -265,7 +264,8 @@ class MoEInference:
 
         # Affected component (simplified)
         dominant_expert = max(expert_weights, key=expert_weights.get)
-        affected_component = dominant_expert.replace('expert', '').replace('_', ' ')
+        affected_component = dominant_expert.replace(
+            'expert', '').replace('_', ' ')
 
         return anomaly_type, severity, affected_component
 
@@ -311,8 +311,10 @@ class MoEInference:
 
             # 4. Use gating network for anomaly detection
             gating_features = self.compute_gating_features(expert_scores)
-            anomaly_prediction = self.gating_network.predict(gating_features)[0]
-            anomaly_probability = self.gating_network.predict_proba(gating_features)[0][1]
+            anomaly_prediction = self.gating_network.predict(gating_features)[
+                0]
+            anomaly_probability = self.gating_network.predict_proba(gating_features)[
+                0][1]
 
             is_anomaly = bool(anomaly_prediction)
 
@@ -375,7 +377,8 @@ class MoEInference:
         stats = self.stats.copy()
 
         if stats['total_inferences'] > 0:
-            stats['anomaly_rate'] = stats['anomalies_detected'] / stats['total_inferences']
+            stats['anomaly_rate'] = stats['anomalies_detected'] / \
+                stats['total_inferences']
         else:
             stats['anomaly_rate'] = 0.0
 
@@ -459,7 +462,8 @@ if __name__ == "__main__":
         print("\nExpert Scores:")
         for expert_name, score in result['expert_scores'].items():
             threshold = moe.thresholds[expert_name]
-            print(f"  {expert_name:<20} Score: {score:>8.3f}  Threshold: {threshold:>8.3f}")
+            print(
+                f"  {expert_name:<20} Score: {score:>8.3f}  Threshold: {threshold:>8.3f}")
 
         print("\nExpert Weights (Attention):")
         for expert_name, weight in result['expert_weights'].items():

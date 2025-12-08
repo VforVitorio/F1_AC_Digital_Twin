@@ -13,6 +13,9 @@ Usage:
 Author: F1 Digital Twin Team
 """
 
+from kafka_handlers import setup_anomaly_topic, delivery_callback
+from moe_inference import MoEInference
+from feature_processor import RealTimeFeatureExtractor, validate_telemetry
 import sys
 import json
 import argparse
@@ -26,9 +29,6 @@ import logging
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'src'))
 
-from feature_processor import RealTimeFeatureExtractor, validate_telemetry
-from moe_inference import MoEInference
-from kafka_handlers import setup_anomaly_topic, delivery_callback
 
 # Configure logging
 logging.basicConfig(
@@ -141,7 +141,8 @@ class MoEAnomalyDetector:
             is_valid, missing = validate_telemetry(telemetry)
 
             if not is_valid:
-                logger.warning(f"Invalid telemetry: missing {len(missing)} features")
+                logger.warning(
+                    f"Invalid telemetry: missing {len(missing)} features")
                 # Fill missing with None or 0
                 for feature in missing:
                     telemetry[feature] = 0.0
@@ -153,7 +154,8 @@ class MoEAnomalyDetector:
             prediction = self.moe.predict(normalized_features)
 
             # 4. Build anomaly message
-            anomaly_message = self._build_anomaly_message(telemetry, prediction)
+            anomaly_message = self._build_anomaly_message(
+                telemetry, prediction)
 
             return anomaly_message
 
@@ -173,10 +175,11 @@ class MoEAnomalyDetector:
         Returns:
             Anomaly message dictionary
         """
-        # Extract context from telemetry
-        lap = telemetry.get('CompletedLaps', 0)
-        distance = telemetry.get('Distance', 0.0)
-        speed = telemetry.get('Speed_kmh', 0.0)
+        # Extract context from telemetry (check both producer and normalized field names)
+        lap = telemetry.get(
+            'completed_laps', telemetry.get('CompletedLaps', 0))
+        distance = telemetry.get('distance', telemetry.get('Distance', 0.0))
+        speed = telemetry.get('speed_kmh', telemetry.get('Speed_kmh', 0.0))
 
         # Build message
         message = {
@@ -196,7 +199,8 @@ class MoEAnomalyDetector:
 
         # Add detailed information if anomaly detected
         if prediction['is_anomaly']:
-            message['details'] = self._extract_anomaly_details(telemetry, prediction)
+            message['details'] = self._extract_anomaly_details(
+                telemetry, prediction)
 
         return message
 
@@ -356,7 +360,8 @@ class MoEAnomalyDetector:
         elapsed = time.time() - self.stats['start_time']
         rate = self.stats['messages_consumed'] / elapsed if elapsed > 0 else 0
         anomaly_rate = (
-            self.stats['anomalies_detected'] / self.stats['messages_consumed'] * 100
+            self.stats['anomalies_detected'] /
+            self.stats['messages_consumed'] * 100
             if self.stats['messages_consumed'] > 0 else 0
         )
 
@@ -381,12 +386,14 @@ class MoEAnomalyDetector:
         logger.info(f"Errors: {self.stats['errors']}")
 
         if self.stats['messages_consumed'] > 0:
-            anomaly_rate = self.stats['anomalies_detected'] / self.stats['messages_consumed'] * 100
+            anomaly_rate = self.stats['anomalies_detected'] / \
+                self.stats['messages_consumed'] * 100
             logger.info(f"Anomaly rate: {anomaly_rate:.2f}%")
 
         if elapsed > 0:
             throughput = self.stats['messages_consumed'] / elapsed
-            logger.info(f"Average throughput: {throughput:.1f} messages/second")
+            logger.info(
+                f"Average throughput: {throughput:.1f} messages/second")
 
         # MoE stats
         moe_stats = self.moe.get_stats()
@@ -397,7 +404,8 @@ class MoEAnomalyDetector:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description='MoE Anomaly Detection Kafka Consumer')
+    parser = argparse.ArgumentParser(
+        description='MoE Anomaly Detection Kafka Consumer')
     parser.add_argument(
         '--kafka-servers',
         type=str,
