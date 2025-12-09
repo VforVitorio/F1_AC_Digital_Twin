@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 MoE Data Preparation Script
-Prepares telemetry data for training with 59 features (20+16+13+10)
+Prepares telemetry data for training with 46 features (20+16+6+4)
+Variables with zero variance have been removed from Experts 3 and 4
 """
 
 from pathlib import Path
@@ -78,30 +79,18 @@ DYNAMICS_FEATURES = [
     'TireLoad_FL', 'TireLoad_FR', 'TireLoad_RL', 'TireLoad_RR',
 ]
 
-# Expert 3: Driver Control (13 features) - UPDATED
+# Expert 3: Driver Control (6 features) - UPDATED
+# Note: TC_InAction, ABS_InAction, BrakeBias, and BrakeTemp variables removed due to zero variance
 CONTROL_FEATURES = [
-    # Basic controls
+    # Basic controls (only variables with variance in telemetry data)
     'Speed_kmh', 'RPM', 'Throttle', 'Brake', 'Steering', 'Gear',
-
-    # Assist systems
-    'TC_InAction', 'ABS_InAction',
-
-    # Brake system (ALL 4 wheels)
-    'BrakeBias',
-    'BrakeTemp_FL', 'BrakeTemp_FR', 'BrakeTemp_RL', 'BrakeTemp_RR',
 ]
 
-# Expert 4: Power Systems (10 features)
+# Expert 4: Power Systems (4 features) - UPDATED
+# Note: Fuel, EngineTemp_Oil, CurrentMaxRpm, EngineBrake, ERS_PowerLevel, ERS_RecoveryLevel removed (zero variance)
 POWER_FEATURES = [
-    # Engine
-    'Fuel', 'TurboBoost', 'EngineTemp_Oil',
-    'CurrentMaxRpm', 'EngineBrake',
-
-    # KERS/ERS
+    'TurboBoost',
     'KERS_Charge', 'KERS_CurrentKJ',
-    'ERS_PowerLevel', 'ERS_RecoveryLevel',
-
-    # DRS
     'DRS_Enabled',
 ]
 
@@ -233,7 +222,7 @@ def prepare_expert_data(splits, feature_cols, expert_name):
 def main():
     """Main execution function."""
     print("=" * 70)
-    print("MoE DATA PREPARATION - 59 FEATURES")
+    print("MoE DATA PREPARATION - 46 FEATURES")
     print("=" * 70)
     print(f"\nInput file: {INPUT_FILE}")
     print(f"Output directory: {PROCESSED_DIR}")

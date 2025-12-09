@@ -36,10 +36,5 @@
   "converged": true,
   "train_samples": 46260,
   "val_samples": 9781,
-  "test_samples": 10084,
-  "anomaly_rates": {
-    "train": 5.0,
-    "val": 2.167467539106431,
-    "test": 7.695358984529949
-  }
+  "test_samples": 10084
 }

@@ -1,35 +1,24 @@
 {
   "expert_name": "expert4_power",
-  "n_components": 4,
-  "n_features": 10,
+  "n_components": 5,
+  "n_features": 4,
   "features": [
-    "Fuel",
     "TurboBoost",
-    "EngineTemp_Oil",
-    "CurrentMaxRpm",
-    "EngineBrake",
     "KERS_Charge",
     "KERS_CurrentKJ",
-    "ERS_PowerLevel",
-    "ERS_RecoveryLevel",
     "DRS_Enabled"
   ],
   "covariance_type": "full",
-  "threshold": -28.027090778980355,
+  "threshold": 0.18250825407587676,
   "threshold_percentile": 95,
   "metrics": {
-    "train_bic": -3389981.2709440948,
-    "val_bic": -743660.3441889638,
-    "train_aic": -3392280.4256062065,
-    "val_aic": -745550.8400018811
+    "train_bic": -279555.6698867337,
+    "val_bic": -61356.123336714,
+    "train_aic": -280202.5803239818,
+    "val_aic": -61888.0499152535
   },
   "converged": true,
   "train_samples": 46260,
   "val_samples": 9781,
-  "test_samples": 10084,
-  "anomaly_rates": {
-    "train": 5.0,
-    "val": 0.0,
-    "test": 6.059103530345101
-  }
+  "test_samples": 10084
 }

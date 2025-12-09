@@ -16,27 +16,10 @@
   "thresholds": {
     "expert1_tire": -93.24595408402269,
     "expert2_dynamics": 22.23151120845535,
-    "expert3_control": -37.66725861986503,
-    "expert4_power": -28.027090778980355
+    "expert3_control": 4.254326384001063,
+    "expert4_power": 0.18250825407587676
   },
   "gating_strategy": "learned",
-  "uniform_threshold": -36.94112759808356,
-  "confidence_threshold": 21.979423618546218,
-  "metrics": {
-    "uniform_gating": {
-      "train_mean": -44.57504626969703,
-      "val_mean": -45.17042347164218,
-      "test_mean": -44.289831196385016
-    },
-    "confidence_gating": {
-      "train_mean": 6.071864506847456,
-      "val_mean": 5.71906624920224,
-      "test_mean": 6.213131565434096
-    },
-    "learned_gating": {
-      "train_accuracy": 0.824081279723303,
-      "val_accuracy": 0.8908087107657704,
-      "test_accuracy": 0.8019635065450218
-    }
-  }
+  "uniform_threshold": -31.571516970013477,
+  "confidence_threshold": -7.240853447301984
 }

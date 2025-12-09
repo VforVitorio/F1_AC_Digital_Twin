@@ -1,38 +1,26 @@
 {
   "expert_name": "expert3_control",
   "n_components": 5,
-  "n_features": 13,
+  "n_features": 6,
   "features": [
     "Speed_kmh",
     "RPM",
     "Throttle",
     "Brake",
     "Steering",
-    "Gear",
-    "TC_InAction",
-    "ABS_InAction",
-    "BrakeBias",
-    "BrakeTemp_FL",
-    "BrakeTemp_FR",
-    "BrakeTemp_RL",
-    "BrakeTemp_RR"
+    "Gear"
   ],
   "covariance_type": "full",
-  "threshold": -37.66725861986503,
+  "threshold": 4.254326384001063,
   "threshold_percentile": 95,
   "metrics": {
-    "train_bic": -4763193.541006052,
-    "val_bic": -1009368.8319341525,
-    "train_aic": -4767774.366264404,
-    "val_aic": -1013135.4471659728
+    "train_bic": -888732.298325267,
+    "val_bic": -192833.8085607215,
+    "train_aic": -889947.4409033412,
+    "val_aic": -193832.96794473488
   },
   "converged": true,
   "train_samples": 46260,
   "val_samples": 9781,
-  "test_samples": 10084,
-  "anomaly_rates": {
-    "train": 5.0,
-    "val": 4.518965340967181,
-    "test": 5.364934549781833
-  }
+  "test_samples": 10084
 }

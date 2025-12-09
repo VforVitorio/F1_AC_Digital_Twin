@@ -4,9 +4,13 @@ Real-time Feature Processor for MoE Anomaly Detection
 This module handles feature extraction and normalization for the 4-expert MoE system:
 - Expert 1: Tire Dynamics (20 features)
 - Expert 2: Vehicle Dynamics (16 features)
-- Expert 3: Driver Control (13 features)
-- Expert 4: Power Systems (10 features)
-Total: 59 features
+- Expert 3: Driver Control (6 features)
+- Expert 4: Power Systems (4 features)
+Total: 46 features
+
+Note: Variables with zero variance have been removed:
+      - Expert 3: TC_InAction, ABS_InAction, BrakeBias, BrakeTemp_*
+      - Expert 4: Fuel, EngineTemp_Oil, CurrentMaxRpm, EngineBrake, ERS_PowerLevel, ERS_RecoveryLevel
 
 Author: F1 Digital Twin Team
 """
@@ -47,14 +51,14 @@ class RealTimeFeatureExtractor:
             'TireLoad_FL', 'TireLoad_FR', 'TireLoad_RL', 'TireLoad_RR'  # 16 features
         ],
         'expert3_control': [
-            'Speed_kmh', 'RPM', 'Throttle', 'Brake', 'Steering', 'Gear',
-            'TC_InAction', 'ABS_InAction', 'BrakeBias',
-            'BrakeTemp_FL', 'BrakeTemp_FR', 'BrakeTemp_RL', 'BrakeTemp_RR'  # 13 features
+            'Speed_kmh', 'RPM', 'Throttle', 'Brake', 'Steering', 'Gear'  # 6 features
+            # Note: TC_InAction, ABS_InAction, BrakeBias, and BrakeTemp_* removed (zero variance)
         ],
         'expert4_power': [
-            'Fuel', 'TurboBoost', 'EngineTemp_Oil', 'CurrentMaxRpm', 'EngineBrake',
-            'KERS_Charge', 'KERS_CurrentKJ', 'ERS_PowerLevel', 'ERS_RecoveryLevel',
-            'DRS_Enabled'
+            'TurboBoost',
+            'KERS_Charge', 'KERS_CurrentKJ',
+            'DRS_Enabled'  # 4 features
+            # Note: Fuel, EngineTemp_Oil, CurrentMaxRpm, EngineBrake, ERS_* removed (zero variance)
         ]
     }
 
@@ -110,6 +114,10 @@ class RealTimeFeatureExtractor:
         'tire_load_fr': 'TireLoad_FR',
         'tire_load_rl': 'TireLoad_RL',
         'tire_load_rr': 'TireLoad_RR',
+        'TireLoad_FL': 'TireLoad_FL',  # Identity mappings for CamelCase
+        'TireLoad_FR': 'TireLoad_FR',
+        'TireLoad_RL': 'TireLoad_RL',
+        'TireLoad_RR': 'TireLoad_RR',
         # Control
         'speed_kmh': 'Speed_kmh',
         'rpm': 'RPM',
@@ -117,26 +125,26 @@ class RealTimeFeatureExtractor:
         'brake': 'Brake',
         'steering': 'Steering',
         'gear': 'Gear',
-        # Assist systems
-        'tc_in_action': 'TC_InAction',
-        'abs_in_action': 'ABS_InAction',
-        'brake_bias': 'BrakeBias',
-        # Brake temps
-        'brake_temp_fl': 'BrakeTemp_FL',
-        'brake_temp_fr': 'BrakeTemp_FR',
-        'brake_temp_rl': 'BrakeTemp_RL',
-        'brake_temp_rr': 'BrakeTemp_RR',
-        # Power
-        'fuel': 'Fuel',
+        # Note: Assist systems and brake temps removed due to zero variance in telemetry
+        # 'tc_in_action': 'TC_InAction',
+        # 'abs_in_action': 'ABS_InAction',
+        # 'brake_bias': 'BrakeBias',
+        # 'brake_temp_fl': 'BrakeTemp_FL',
+        # 'brake_temp_fr': 'BrakeTemp_FR',
+        # 'brake_temp_rl': 'BrakeTemp_RL',
+        # 'brake_temp_rr': 'BrakeTemp_RR',
+        # Power (only variables with variance)
         'turbo_boost': 'TurboBoost',
-        'engine_temp_oil': 'EngineTemp_Oil',
-        'current_max_rpm': 'CurrentMaxRpm',
-        'engine_brake': 'EngineBrake',
         'kers_charge': 'KERS_Charge',
         'kers_current_kj': 'KERS_CurrentKJ',
-        'ers_power_level': 'ERS_PowerLevel',
-        'ers_recovery_level': 'ERS_RecoveryLevel',
         'drs_enabled': 'DRS_Enabled',
+        # Note: Fuel, engine temps, RPM, brake, and ERS levels removed (zero variance)
+        # 'fuel': 'Fuel',
+        # 'engine_temp_oil': 'EngineTemp_Oil',
+        # 'current_max_rpm': 'CurrentMaxRpm',
+        # 'engine_brake': 'EngineBrake',
+        # 'ers_power_level': 'ERS_PowerLevel',
+        # 'ers_recovery_level': 'ERS_RecoveryLevel',
         # Metadata
         'completed_laps': 'CompletedLaps',
         'distance': 'Distance',

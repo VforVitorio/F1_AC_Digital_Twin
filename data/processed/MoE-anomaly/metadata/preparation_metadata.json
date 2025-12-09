@@ -54,33 +54,20 @@
       "Throttle",
       "Brake",
       "Steering",
-      "Gear",
-      "TC_InAction",
-      "ABS_InAction",
-      "BrakeBias",
-      "BrakeTemp_FL",
-      "BrakeTemp_FR",
-      "BrakeTemp_RL",
-      "BrakeTemp_RR"
+      "Gear"
     ],
     "expert4_power": [
-      "Fuel",
       "TurboBoost",
-      "EngineTemp_Oil",
-      "CurrentMaxRpm",
-      "EngineBrake",
       "KERS_Charge",
       "KERS_CurrentKJ",
-      "ERS_PowerLevel",
-      "ERS_RecoveryLevel",
       "DRS_Enabled"
     ]
   },
   "feature_counts": {
     "expert1_tire": 20,
     "expert2_dynamics": 16,
-    "expert3_control": 13,
-    "expert4_power": 10,
-    "total": 59
+    "expert3_control": 6,
+    "expert4_power": 4,
+    "total": 46
   }
 }
