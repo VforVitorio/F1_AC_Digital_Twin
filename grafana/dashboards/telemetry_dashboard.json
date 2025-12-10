@@ -802,16 +802,33 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "unit": "celsius",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": 0
               },
               {
+                "color": "light-blue",
+                "value": 15
+              },
+              {
+                "color": "green",
+                "value": 25
+              },
+              {
+                "color": "yellow",
+                "value": 35
+              },
+              {
+                "color": "orange",
+                "value": 45
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 55
               }
             ]
           }
@@ -863,16 +880,33 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "unit": "celsius",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": 0
               },
               {
+                "color": "light-blue",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 18
+              },
+              {
+                "color": "yellow",
+                "value": 26
+              },
+              {
+                "color": "orange",
+                "value": 32
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 38
               }
             ]
           }
@@ -924,16 +958,33 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "decimals": 2,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": 0
               },
               {
-                "color": "red",
-                "value": 80
+                "color": "orange",
+                "value": 1.10
+              },
+              {
+                "color": "yellow",
+                "value": 1.15
+              },
+              {
+                "color": "green",
+                "value": 1.18
+              },
+              {
+                "color": "light-blue",
+                "value": 1.25
+              },
+              {
+                "color": "blue",
+                "value": 1.30
               }
             ]
           }
@@ -998,16 +1049,43 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 120,
+          "min": 0,
+          "unit": "celsius",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "dark-blue",
                 "value": 0
               },
               {
+                "color": "blue",
+                "value": 50
+              },
+              {
+                "color": "light-blue",
+                "value": 65
+              },
+              {
+                "color": "super-light-green",
+                "value": 75
+              },
+              {
+                "color": "green",
+                "value": 85
+              },
+              {
+                "color": "yellow",
+                "value": 95
+              },
+              {
+                "color": "orange",
+                "value": 105
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 110
               }
             ]
           }
@@ -1034,7 +1112,11 @@
         },
         "showThresholdLabels": false,
         "showThresholdMarkers": true,
-        "sizing": "auto"
+        "sizing": "auto",
+        "text": {
+          "titleSize": 16,
+          "valueSize": 28
+        }
       },
       "pluginVersion": "12.1.1",
       "targets": [
@@ -1057,16 +1139,43 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 120,
+          "min": 0,
+          "unit": "celsius",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "dark-blue",
                 "value": 0
               },
               {
+                "color": "blue",
+                "value": 50
+              },
+              {
+                "color": "light-blue",
+                "value": 65
+              },
+              {
+                "color": "super-light-green",
+                "value": 75
+              },
+              {
+                "color": "green",
+                "value": 85
+              },
+              {
+                "color": "yellow",
+                "value": 95
+              },
+              {
+                "color": "orange",
+                "value": 105
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 110
               }
             ]
           }
@@ -1093,7 +1202,11 @@
         },
         "showThresholdLabels": false,
         "showThresholdMarkers": true,
-        "sizing": "auto"
+        "sizing": "auto",
+        "text": {
+          "titleSize": 16,
+          "valueSize": 28
+        }
       },
       "pluginVersion": "12.1.1",
       "targets": [
@@ -1116,16 +1229,43 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 120,
+          "min": 0,
+          "unit": "celsius",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "dark-blue",
                 "value": 0
               },
               {
+                "color": "blue",
+                "value": 50
+              },
+              {
+                "color": "light-blue",
+                "value": 65
+              },
+              {
+                "color": "super-light-green",
+                "value": 75
+              },
+              {
+                "color": "green",
+                "value": 85
+              },
+              {
+                "color": "yellow",
+                "value": 95
+              },
+              {
+                "color": "orange",
+                "value": 105
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 110
               }
             ]
           }
@@ -1152,7 +1292,11 @@
         },
         "showThresholdLabels": false,
         "showThresholdMarkers": true,
-        "sizing": "auto"
+        "sizing": "auto",
+        "text": {
+          "titleSize": 16,
+          "valueSize": 28
+        }
       },
       "pluginVersion": "12.1.1",
       "targets": [
@@ -1175,16 +1319,43 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 120,
+          "min": 0,
+          "unit": "celsius",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "dark-blue",
                 "value": 0
               },
               {
+                "color": "blue",
+                "value": 50
+              },
+              {
+                "color": "light-blue",
+                "value": 65
+              },
+              {
+                "color": "super-light-green",
+                "value": 75
+              },
+              {
+                "color": "green",
+                "value": 85
+              },
+              {
+                "color": "yellow",
+                "value": 95
+              },
+              {
+                "color": "orange",
+                "value": 105
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 110
               }
             ]
           }
@@ -1211,7 +1382,11 @@
         },
         "showThresholdLabels": false,
         "showThresholdMarkers": true,
-        "sizing": "auto"
+        "sizing": "auto",
+        "text": {
+          "titleSize": 16,
+          "valueSize": 28
+        }
       },
       "pluginVersion": "12.1.1",
       "targets": [
@@ -1220,7 +1395,7 @@
           "refId": "A"
         }
       ],
-      "title": "Rear Right",
+      "title": "Rear Right (RR)",
       "type": "gauge"
     },
     {
@@ -1518,5 +1693,5 @@
   "timezone": "browser",
   "title": "Telemetry Dashboard",
   "uid": "232ded93-c8b3-4cc7-b512-1662b7da702e",
-  "version": 34
+  "version": 36
 }
