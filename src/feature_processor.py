@@ -35,14 +35,8 @@ class RealTimeFeatureExtractor:
     """
 
     # Expert feature definitions (must match training)
+    # Note: expert1_tire removed - no tire temperature data available
     EXPERT_FEATURES = {
-        'expert1_tire': [
-            'TireTemp_FL_Avg', 'TireTemp_FR_Avg', 'TireTemp_RL_Avg', 'TireTemp_RR_Avg',
-            'TireWear_FL', 'TireWear_FR', 'TireWear_RL', 'TireWear_RR',
-            'TirePressure_FL', 'TirePressure_FR', 'TirePressure_RL', 'TirePressure_RR',
-            'SlipRatio_FL', 'SlipRatio_FR', 'SlipRatio_RL', 'SlipRatio_RR',
-            'SlipAngle_FL', 'SlipAngle_FR', 'SlipAngle_RL', 'SlipAngle_RR'
-        ],
         'expert2_dynamics': [
             'AccG_Lateral', 'AccG_Vertical', 'AccG_Longitudinal',
             'LocalVelocity_X', 'LocalVelocity_Y', 'LocalVelocity_Z',
@@ -260,7 +254,7 @@ class RealTimeFeatureExtractor:
         Example:
             >>> telemetry = {'Speed_kmh': 280.5, 'RPM': 11500, ...}
             >>> features = extractor.extract_features(telemetry)
-            >>> features['expert1_tire']  # array of 20 tire features
+            >>> features['expert2_dynamics']  # array of 16 dynamics features
         """
         # Normalize field names first
         telemetry = self._normalize_field_names(telemetry)

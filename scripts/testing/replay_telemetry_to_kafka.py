@@ -24,7 +24,6 @@ Examples:
 Author: F1 Digital Twin Team
 """
 
-from config import KAFKA_SERVERS, KAFKA_TOPIC
 import sys
 import json
 import argparse
@@ -229,6 +228,8 @@ class TelemetryReplayer:
 
 def main():
     """Main entry point."""
+    from config import KAFKA_SERVERS, KAFKA_TOPIC
+
     parser = argparse.ArgumentParser(
         description='Replay historical telemetry to Kafka'
     )

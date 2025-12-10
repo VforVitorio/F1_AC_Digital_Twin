@@ -238,14 +238,14 @@ class MoEInference:
         else:
             # Single expert anomaly
             expert = anomalous_experts[0]
-            if expert == 'expert1_tire':
-                anomaly_type = 'tire_anomaly'
-            elif expert == 'expert2_dynamics':
+            if expert == 'expert2_dynamics':
                 anomaly_type = 'vehicle_dynamics'
             elif expert == 'expert3_control':
                 anomaly_type = 'driver_control'
-            else:  # expert4_power
+            elif expert == 'expert4_power':
                 anomaly_type = 'power_system'
+            else:
+                anomaly_type = 'unknown'
 
         # Determine severity based on score deviation from threshold
         max_deviation = 0

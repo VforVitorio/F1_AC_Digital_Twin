@@ -21,13 +21,13 @@
     "TireLoad_RR"
   ],
   "covariance_type": "full",
-  "threshold": 22.23151120845535,
+  "threshold": 22.23151120845537,
   "threshold_percentile": 95,
   "metrics": {
     "train_bic": 650523.1142812,
-    "val_bic": 134611.91411785714,
+    "val_bic": 134611.9141178572,
     "train_aic": 643844.2011182599,
-    "val_aic": 129120.13160428722
+    "val_aic": 129120.13160428726
   },
   "converged": true,
   "train_samples": 46260,
