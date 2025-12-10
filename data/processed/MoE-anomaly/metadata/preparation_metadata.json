@@ -1,5 +1,5 @@
 {
-  "input_file": "telemetry_2025-12-08_18-05-21.csv",
+  "input_file": "telemetry_2025-12-08_18-05-21_FIXED.csv",
   "total_samples": 66125,
   "split_ratios": [
     0.7,

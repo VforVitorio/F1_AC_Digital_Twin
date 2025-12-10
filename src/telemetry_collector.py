@@ -532,6 +532,13 @@ def main():
         # Extract car coordinates for positional analysis
         coords = tuple(data_g.carCoordinates)
 
+        # Calculate tire temperature averages from inner, middle, outer phases
+        # since data.tyreTemp[] is not provided by AC shared memory
+        tire_temp_fl_avg = (data.tyreTempI[0] + data.tyreTempM[0] + data.tyreTempO[0]) / 3.0
+        tire_temp_fr_avg = (data.tyreTempI[1] + data.tyreTempM[1] + data.tyreTempO[1]) / 3.0
+        tire_temp_rl_avg = (data.tyreTempI[2] + data.tyreTempM[2] + data.tyreTempO[2]) / 3.0
+        tire_temp_rr_avg = (data.tyreTempI[3] + data.tyreTempM[3] + data.tyreTempO[3]) / 3.0
+
         # Build comprehensive telemetry record for this timestamp with ALL available variables
         record = {
             # === TIMESTAMP ===
@@ -574,7 +581,7 @@ def main():
             "TireTemp_FL_Inner": round(data.tyreTempI[0], 1),
             "TireTemp_FL_Middle": round(data.tyreTempM[0], 1),
             "TireTemp_FL_Outer": round(data.tyreTempO[0], 1),
-            "TireTemp_FL_Avg": round(data.tyreTemp[0], 1),
+            "TireTemp_FL_Avg": round(tire_temp_fl_avg, 1),
             "TireTemp_FL_Core": round(data.tyreCoreTemperature[0], 1),
             "TireWear_FL": round(data.tyreWear[0], 2),
             "TireDirty_FL": round(data.tyreDirtyLevel[0], 3),
@@ -596,7 +603,7 @@ def main():
             "TireTemp_FR_Inner": round(data.tyreTempI[1], 1),
             "TireTemp_FR_Middle": round(data.tyreTempM[1], 1),
             "TireTemp_FR_Outer": round(data.tyreTempO[1], 1),
-            "TireTemp_FR_Avg": round(data.tyreTemp[1], 1),
+            "TireTemp_FR_Avg": round(tire_temp_fr_avg, 1),
             "TireTemp_FR_Core": round(data.tyreCoreTemperature[1], 1),
             "TireWear_FR": round(data.tyreWear[1], 2),
             "TireDirty_FR": round(data.tyreDirtyLevel[1], 3),
@@ -618,7 +625,7 @@ def main():
             "TireTemp_RL_Inner": round(data.tyreTempI[2], 1),
             "TireTemp_RL_Middle": round(data.tyreTempM[2], 1),
             "TireTemp_RL_Outer": round(data.tyreTempO[2], 1),
-            "TireTemp_RL_Avg": round(data.tyreTemp[2], 1),
+            "TireTemp_RL_Avg": round(tire_temp_rl_avg, 1),
             "TireTemp_RL_Core": round(data.tyreCoreTemperature[2], 1),
             "TireWear_RL": round(data.tyreWear[2], 2),
             "TireDirty_RL": round(data.tyreDirtyLevel[2], 3),
@@ -640,7 +647,7 @@ def main():
             "TireTemp_RR_Inner": round(data.tyreTempI[3], 1),
             "TireTemp_RR_Middle": round(data.tyreTempM[3], 1),
             "TireTemp_RR_Outer": round(data.tyreTempO[3], 1),
-            "TireTemp_RR_Avg": round(data.tyreTemp[3], 1),
+            "TireTemp_RR_Avg": round(tire_temp_rr_avg, 1),
             "TireTemp_RR_Core": round(data.tyreCoreTemperature[3], 1),
             "TireWear_RR": round(data.tyreWear[3], 2),
             "TireDirty_RR": round(data.tyreDirtyLevel[3], 3),
@@ -751,7 +758,7 @@ def main():
             f"Speed: {data.speedKmh:.1f} km/h | RPM: {data.rpms} | Gear: {gear} | "
             f"Throttle: {data.gas:.2f} | Brake: {data.brake:.2f} | "
             f"G-Force: {data.accG[0]:.2f}lat {data.accG[2]:.2f}lon | "
-            f"Tire: FL {data.tyreTemp[0]:.0f}°C FR {data.tyreTemp[1]:.0f}°C | "
+            f"Tire: FL {tire_temp_fl_avg:.0f}°C FR {tire_temp_fr_avg:.0f}°C | "
             f"Lap: {data_g.completedLaps} ({current_lap_time}){kafka_status}"
         )
 

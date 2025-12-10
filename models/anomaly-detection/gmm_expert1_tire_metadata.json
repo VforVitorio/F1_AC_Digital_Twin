@@ -25,16 +25,21 @@
     "SlipAngle_RR"
   ],
   "covariance_type": "full",
-  "threshold": -93.24595408402269,
+  "threshold": -69.41603643763916,
   "threshold_percentile": 95,
   "metrics": {
-    "train_bic": -8964624.22672923,
-    "val_bic": -1891223.960899078,
-    "train_aic": -8974712.532737125,
-    "val_aic": -1899519.1402454912
+    "train_bic": -6938678.744313653,
+    "val_bic": -1465336.5063841597,
+    "train_aic": -6948767.050321549,
+    "val_aic": -1473631.6857305728
   },
   "converged": true,
   "train_samples": 46260,
   "val_samples": 9781,
-  "test_samples": 10084
+  "test_samples": 10084,
+  "anomaly_rates": {
+    "train": 5.0,
+    "val": 3.2000817912278907,
+    "test": 6.832606108687029
+  }
 }
