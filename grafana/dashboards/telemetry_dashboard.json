@@ -114,6 +114,10 @@
               },
               {
                 "color": "orange",
+                "value": -135
+              },
+              {
+                "color": "yellow",
                 "value": -90
               },
               {
@@ -122,19 +126,19 @@
               },
               {
                 "color": "green",
-                "value": 0
-              },
-              {
-                "color": "green",
                 "value": 45
               },
               {
-                "color": "orange",
+                "color": "yellow",
                 "value": 90
               },
               {
-                "color": "red",
+                "color": "orange",
                 "value": 135
+              },
+              {
+                "color": "red",
+                "value": 160
               }
             ]
           },
@@ -189,16 +193,30 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 15000,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": 0
               },
               {
+                "color": "green",
+                "value": 4000
+              },
+              {
+                "color": "yellow",
+                "value": 10000
+              },
+              {
+                "color": "orange",
+                "value": 11500
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 12500
               }
             ]
           }
@@ -234,7 +252,7 @@
             "type": "influxdb",
             "uid": "influxdb-f1"
           },
-          "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: -30s)\r\n  |> filter(fn: (r) => r._measurement == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r._field == \"rpm\")\r\n  |> last()",
+          "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: -30s)\r\n  |> filter(fn: (r) => r._measurement == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r._field == \"rpm\")\r\n  |> aggregateWindow(every: 200ms, fn: mean, createEmpty: false)\r\n  |> last()",
           "refId": "A"
         }
       ],
@@ -312,16 +330,31 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 370,
+          "min": 0,
+          "unit": "velocitykmh",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": 0
               },
               {
+                "color": "green",
+                "value": 100
+              },
+              {
+                "color": "yellow",
+                "value": 250
+              },
+              {
+                "color": "orange",
+                "value": 300
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 340
               }
             ]
           }
@@ -357,7 +390,7 @@
             "type": "influxdb",
             "uid": "influxdb-f1"
           },
-          "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: -30s)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"speed_kmh\")\r\n  |> last()",
+          "query": "from(bucket: \"f1-telemetry\")\r\n  |> range(start: -30s)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"f1_telemetry\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"speed_kmh\")\r\n  |> aggregateWindow(every: 200ms, fn: mean, createEmpty: false)\r\n  |> last()",
           "refId": "A"
         }
       ],
@@ -1547,5 +1580,5 @@
   "timezone": "browser",
   "title": "Telemetry Dashboard",
   "uid": "232ded93-c8b3-4cc7-b512-1662b7da702e",
-  "version": 31
+  "version": 32
 }

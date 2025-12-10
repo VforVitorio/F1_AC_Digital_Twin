@@ -19,6 +19,7 @@
           "uid": "influxdb-anomalies"
         },
         "enable": true,
+        "hide": false,
         "iconColor": "red",
         "name": "Anomalies",
         "target": {
@@ -33,9 +34,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
+  "id": 4,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "datasource": {
@@ -69,7 +69,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -92,6 +92,7 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "last"
@@ -99,9 +100,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
       },
-      "pluginVersion": "10.0.0",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
@@ -126,19 +129,22 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 20,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
@@ -146,6 +152,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -161,7 +168,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           }
@@ -177,16 +184,21 @@
       "id": 2,
       "options": {
         "legend": {
-          "calcs": ["mean", "last"],
+          "calcs": [
+            "mean",
+            "last"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
@@ -211,19 +223,22 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 15,
             "gradientMode": "opacity",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
@@ -231,6 +246,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -246,7 +262,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -266,16 +282,23 @@
       "id": 4,
       "options": {
         "legend": {
-          "calcs": ["mean", "last", "min", "max"],
+          "calcs": [
+            "mean",
+            "last",
+            "min",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
@@ -300,19 +323,22 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 15,
             "gradientMode": "opacity",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
@@ -320,6 +346,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -335,7 +362,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -355,16 +382,23 @@
       "id": 5,
       "options": {
         "legend": {
-          "calcs": ["mean", "last", "min", "max"],
+          "calcs": [
+            "mean",
+            "last",
+            "min",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
@@ -389,19 +423,22 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 15,
             "gradientMode": "opacity",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
@@ -409,6 +446,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -424,7 +462,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -444,16 +482,23 @@
       "id": 6,
       "options": {
         "legend": {
-          "calcs": ["mean", "last", "min", "max"],
+          "calcs": [
+            "mean",
+            "last",
+            "min",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
@@ -482,6 +527,9 @@
             "cellOptions": {
               "type": "auto"
             },
+            "footer": {
+              "reducers": []
+            },
             "inspect": false
           },
           "mappings": [],
@@ -490,7 +538,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           }
@@ -543,16 +591,10 @@
       "id": 7,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "10.0.0",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
@@ -571,10 +613,10 @@
             "excludeByName": {},
             "indexByName": {
               "_time": 0,
+              "_value": 4,
               "anomaly_type": 1,
-              "severity": 2,
               "lap": 3,
-              "_value": 4
+              "severity": 2
             },
             "renameByName": {
               "_time": "Time",
@@ -600,6 +642,7 @@
             "mode": "fixed"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -607,9 +650,9 @@
             "fillOpacity": 80,
             "gradientMode": "scheme",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "lineWidth": 1,
             "scaleDistribution": {
@@ -625,7 +668,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -692,7 +735,9 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true
@@ -701,19 +746,21 @@
         "showValue": "always",
         "stacking": "none",
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         },
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 100
       },
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
             "uid": "influxdb-anomalies"
           },
-          "query": "from(bucket: \"f1-anomalies\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"anomaly_detection\")\n  |> filter(fn: (r) => r[\"_field\"] == \"expert2_dynamics_weight\" or r[\"_field\"] == \"expert3_control_weight\" or r[\"_field\"] == \"expert4_power_weight\")\n  |> mean()\n  |> map(fn: (r) => ({\n      r with\n      _field: if r._field == \"expert2_dynamics_weight\" then \"Dynamics\"\n              else if r._field == \"expert3_control_weight\" then \"Control\"\n              else \"Power\"\n    }))",
+          "query": "from(bucket: \"f1-anomalies\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"anomaly\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /expert[1-4]/)\n  |> mean()\n  |> map(fn: (r) => ({\n      expert: r._field,\n      _value: r._value\n  }))\n  |> group(columns: [\"expert\"])",
           "refId": "A"
         }
       ],
@@ -736,7 +783,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -764,14 +811,19 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": ["count"],
+          "calcs": [
+            "count"
+          ],
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "10.0.0",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
@@ -803,7 +855,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "yellow",
@@ -827,16 +879,21 @@
       },
       "id": 11,
       "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
         "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "showThresholdMarkers": true,
+        "sizing": "auto"
       },
-      "pluginVersion": "10.0.0",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
@@ -887,7 +944,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           }
@@ -906,21 +963,26 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "severity",
           "values": false
         },
-        "textMode": "value"
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
-      "pluginVersion": "10.0.0",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
             "uid": "influxdb-anomalies"
           },
-          "query": "from(bucket: \"f1-anomalies\")\n  |> range(start: -10s)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"anomaly_detection\")\n  |> filter(fn: (r) => r[\"is_anomaly\"] == \"True\")\n  |> filter(fn: (r) => r[\"_field\"] == \"global_score\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\", \"severity\"])",
+          "query": "from(bucket: \"f1-anomalies\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"anomaly\")\n  |> filter(fn: (r) => r[\"_field\"] == \"anomaly_probability\")\n  |> filter(fn: (r) => r[\"is_anomaly\"] == \"True\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: r.severity}))\n  |> keep(columns: [\"_value\"])",
           "refId": "A"
         }
       ],
@@ -943,7 +1005,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           }
@@ -962,21 +1024,26 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "anomaly_type",
           "values": false
         },
-        "textMode": "value"
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
-      "pluginVersion": "10.0.0",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
             "uid": "influxdb-anomalies"
           },
-          "query": "from(bucket: \"f1-anomalies\")\n  |> range(start: -10s)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"anomaly_detection\")\n  |> filter(fn: (r) => r[\"is_anomaly\"] == \"True\")\n  |> filter(fn: (r) => r[\"_field\"] == \"global_score\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\", \"anomaly_type\"])",
+          "query": "from(bucket: \"f1-anomalies\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"anomaly\")\n  |> filter(fn: (r) => r[\"_field\"] == \"anomaly_probability\")\n  |> filter(fn: (r) => r[\"is_anomaly\"] == \"True\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: r.anomaly_type}))\n  |> keep(columns: [\"_value\"])",
           "refId": "A"
         }
       ],
@@ -984,10 +1051,14 @@
       "type": "stat"
     }
   ],
+  "preload": false,
   "refresh": "100ms",
-  "schemaVersion": 38,
-  "style": "dark",
-  "tags": ["f1", "anomaly", "moe"],
+  "schemaVersion": 42,
+  "tags": [
+    "f1",
+    "anomaly",
+    "moe"
+  ],
   "templating": {
     "list": []
   },
@@ -999,6 +1070,5 @@
   "timezone": "",
   "title": "F1 MoE Anomaly Detection",
   "uid": "f1-anomaly-moe",
-  "version": 0,
-  "weekStart": ""
+  "version": 2
 }
