@@ -1,25 +1,28 @@
 {
   "experts": [
-    "expert1_tire",
     "expert2_dynamics",
     "expert3_control",
     "expert4_power"
   ],
-  "n_experts": 4,
+  "n_experts": 3,
   "expert_models": {
-    "expert1_tire": "gmm_expert1_tire.pkl",
     "expert2_dynamics": "gmm_expert2_dynamics.pkl",
     "expert3_control": "gmm_expert3_control.pkl",
     "expert4_power": "gmm_expert4_power.pkl"
   },
   "gating_model": "gating_network.pkl",
   "thresholds": {
+<<<<<<< HEAD
     "expert1_tire": -69.41603643763916,
     "expert2_dynamics": 22.23151120845535,
+=======
+    "expert2_dynamics": 22.23151120845537,
+>>>>>>> 5e4753bd6af95fa7b4c1c1c41ddd49735598d27a
     "expert3_control": 4.254326384001063,
-    "expert4_power": 0.18250825407587676
+    "expert4_power": 0.18250825407582585
   },
   "gating_strategy": "learned",
+<<<<<<< HEAD
   "uniform_threshold": -12.059121956278677,
   "confidence_threshold": 18.864702159399528,
   "metrics": {
@@ -39,4 +42,8 @@
       "test_accuracy": 0.8407378024593415
     }
   }
+=======
+  "uniform_threshold": -9.447757428537995,
+  "confidence_threshold": -7.236890838742751
+>>>>>>> 5e4753bd6af95fa7b4c1c1c41ddd49735598d27a
 }
