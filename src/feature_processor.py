@@ -313,9 +313,21 @@ class RealTimeFeatureExtractor:
             # Reshape for sklearn: (1, n_features)
             feature_array_2d = feature_array.reshape(1, -1)
 
-            # Normalize using scaler
+            # Get scaler for this expert
             scaler = self.scalers[expert_name]
+
+            # DEBUG: Log raw values before normalization
+            if expert_name == 'expert1_tire':
+                logger.debug(f"[DEBUG] {expert_name} RAW values (first 4): {feature_array[:4]}")
+                logger.debug(f"[DEBUG] Scaler mean (first 4): {scaler.mean_[:4]}")
+                logger.debug(f"[DEBUG] Scaler scale (first 4): {scaler.scale_[:4]}")
+
+            # Normalize using scaler
             normalized_array = scaler.transform(feature_array_2d)
+
+            # DEBUG: Log normalized values
+            if expert_name == 'expert1_tire':
+                logger.debug(f"[DEBUG] {expert_name} NORMALIZED (first 4): {normalized_array.flatten()[:4]}")
 
             # Return as 1D array
             normalized[expert_name] = normalized_array.flatten()

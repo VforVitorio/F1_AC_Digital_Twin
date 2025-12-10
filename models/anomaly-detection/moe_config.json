@@ -14,12 +14,29 @@
   },
   "gating_model": "gating_network.pkl",
   "thresholds": {
-    "expert1_tire": -93.24595408402269,
+    "expert1_tire": -69.41603643763916,
     "expert2_dynamics": 22.23151120845535,
     "expert3_control": 4.254326384001063,
     "expert4_power": 0.18250825407587676
   },
   "gating_strategy": "learned",
-  "uniform_threshold": -31.571516970013477,
-  "confidence_threshold": -7.240853447301984
+  "uniform_threshold": -12.059121956278677,
+  "confidence_threshold": 18.864702159399528,
+  "metrics": {
+    "uniform_gating": {
+      "train_mean": -20.21004882844415,
+      "val_mean": -20.50524706045233,
+      "test_mean": -19.944522723718244
+    },
+    "confidence_gating": {
+      "train_mean": 3.635152599214024,
+      "val_mean": 3.2139755144311666,
+      "test_mean": 3.867971101143861
+    },
+    "learned_gating": {
+      "train_accuracy": 0.8493731085170774,
+      "val_accuracy": 0.8626929761783049,
+      "test_accuracy": 0.8407378024593415
+    }
+  }
 }

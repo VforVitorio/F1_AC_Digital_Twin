@@ -23,8 +23,8 @@ DATA_DIR = ROOT / 'data'
 RAW_DIR = DATA_DIR / 'raw'
 PROCESSED_DIR = DATA_DIR / 'processed' / 'MoE-anomaly'
 
-# Input file - updated to latest telemetry
-INPUT_FILE = RAW_DIR / 'telemetry_2025-12-08_18-05-21.csv'
+# Input file - updated to latest telemetry (FIXED CSV with corrected tire temps)
+INPUT_FILE = RAW_DIR / 'telemetry_2025-12-08_18-05-21_FIXED.csv'
 
 # Create output directories
 SPLITS_DIR = PROCESSED_DIR / 'splits'
