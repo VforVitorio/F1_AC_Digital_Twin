@@ -44,65 +44,7 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "from": -180,
-                "result": {
-                  "color": "red",
-                  "index": 0,
-                  "text": "FULL LEFT"
-                },
-                "to": -135
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": -135,
-                "result": {
-                  "color": "orange",
-                  "index": 1
-                },
-                "to": -45
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": -45,
-                "result": {
-                  "color": "green",
-                  "index": 2
-                },
-                "to": 45
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": 45,
-                "result": {
-                  "color": "orange",
-                  "index": 3
-                },
-                "to": 135
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": 135,
-                "result": {
-                  "color": "red",
-                  "index": 4,
-                  "text": "FULL RIGHT"
-                },
-                "to": 180
-              },
-              "type": "range"
-            }
-          ],
+          "mappings": [],
           "max": 180,
           "min": -180,
           "thresholds": {
@@ -125,20 +67,16 @@
                 "value": -45
               },
               {
-                "color": "green",
+                "color": "yellow",
                 "value": 45
               },
               {
-                "color": "yellow",
+                "color": "orange",
                 "value": 90
               },
               {
-                "color": "orange",
-                "value": 135
-              },
-              {
                 "color": "red",
-                "value": 160
+                "value": 135
               }
             ]
           },
@@ -1580,5 +1518,5 @@
   "timezone": "browser",
   "title": "Telemetry Dashboard",
   "uid": "232ded93-c8b3-4cc7-b512-1662b7da702e",
-  "version": 32
+  "version": 34
 }
