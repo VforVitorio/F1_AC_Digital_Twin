@@ -22,6 +22,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
 import json
+import warnings
+
+# Suppress sklearn warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
 
 # Add src to path
 ROOT = Path(__file__).resolve().parents[2]
@@ -126,11 +130,9 @@ class MoEPipelineTester:
                     'severity': prediction['severity'],
                     'anomaly_probability': prediction['anomaly_probability'],
                     'global_score': prediction['global_score'],
-                    'expert1_score': prediction['expert_scores']['expert1_tire'],
                     'expert2_score': prediction['expert_scores']['expert2_dynamics'],
                     'expert3_score': prediction['expert_scores']['expert3_control'],
                     'expert4_score': prediction['expert_scores']['expert4_power'],
-                    'expert1_weight': prediction['expert_weights']['expert1_tire'],
                     'expert2_weight': prediction['expert_weights']['expert2_dynamics'],
                     'expert3_weight': prediction['expert_weights']['expert3_control'],
                     'expert4_weight': prediction['expert_weights']['expert4_power'],
@@ -207,18 +209,18 @@ class MoEPipelineTester:
         print("✅ Generated: anomaly_timeline.png")
 
         # 2. Expert scores distribution
-        fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-        axes = axes.flatten()
+        fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+        if not isinstance(axes, np.ndarray):
+            axes = [axes]
 
         # Mapping from expert index to threshold key
         expert_type_map = {
-            'expert1': 'tire',
             'expert2': 'dynamics',
             'expert3': 'control',
             'expert4': 'power'
         }
 
-        for idx, expert in enumerate(['expert1', 'expert2', 'expert3', 'expert4']):
+        for idx, expert in enumerate(['expert2', 'expert3', 'expert4']):
             ax = axes[idx]
             score_col = f'{expert}_score'
 
@@ -249,16 +251,16 @@ class MoEPipelineTester:
         # 3. Expert weights (attention)
         fig, ax = plt.subplots(figsize=(12, 6))
 
-        weight_cols = [f'expert{i}_weight' for i in range(1, 5)]
+        weight_cols = ['expert2_weight', 'expert3_weight', 'expert4_weight']
         avg_weights = results_df[weight_cols].mean()
 
-        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
-        bars = ax.bar(range(4), avg_weights, color=colors,
+        colors = ['#ff7f0e', '#2ca02c', '#d62728']
+        bars = ax.bar(range(3), avg_weights, color=colors,
                       edgecolor='black', linewidth=1.5)
 
-        ax.set_xticks(range(4))
+        ax.set_xticks(range(3))
         ax.set_xticklabels(
-            ['Tire', 'Dynamics', 'Control', 'Power'], fontsize=12)
+            ['Dynamics', 'Control', 'Power'], fontsize=12)
         ax.set_ylabel('Average Weight', fontsize=12)
         ax.set_title('Average Expert Weights (Attention)',
                      fontsize=14, fontweight='bold')
@@ -335,7 +337,6 @@ class MoEPipelineTester:
             'severity_distribution': results_df[results_df['is_anomaly']]['severity'].value_counts().to_dict(),
             'average_global_score': float(results_df['global_score'].mean()),
             'average_expert_weights': {
-                'expert1_tire': float(results_df['expert1_weight'].mean()),
                 'expert2_dynamics': float(results_df['expert2_weight'].mean()),
                 'expert3_control': float(results_df['expert3_weight'].mean()),
                 'expert4_power': float(results_df['expert4_weight'].mean())

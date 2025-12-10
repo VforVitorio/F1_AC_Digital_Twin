@@ -1,0 +1,40 @@
+{
+  "total_samples": 66125,
+  "anomalies_detected": 18388,
+  "anomaly_rate": 0.2780793950850662,
+  "anomaly_types": {
+    "none": 10643,
+    "vehicle_dynamics": 2357,
+    "driver_control": 2137,
+    "power_system": 2102,
+    "multiple": 1149
+  },
+  "severity_distribution": {
+    "normal": 10643,
+    "high": 5409,
+    "low": 1299,
+    "medium": 1037
+  },
+  "average_global_score": -6.7584643922483805,
+  "average_expert_weights": {
+    "expert2_dynamics": 0.12415695388863031,
+    "expert3_control": 0.5688974894518237,
+    "expert4_power": 0.3069455566595459
+  },
+  "feature_extractor_stats": {
+    "total_processed": 66125,
+    "missing_values_count": 0,
+    "errors": 0
+  },
+  "moe_stats": {
+    "total_inferences": 66125,
+    "anomalies_detected": 18388,
+    "anomalies_by_expert": {
+      "expert2_dynamics": 3290,
+      "expert3_control": 3296,
+      "expert4_power": 3361
+    },
+    "errors": 0,
+    "anomaly_rate": 0.2780793950850662
+  }
+}

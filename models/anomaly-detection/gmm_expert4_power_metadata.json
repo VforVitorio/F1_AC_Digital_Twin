@@ -9,13 +9,13 @@
     "DRS_Enabled"
   ],
   "covariance_type": "full",
-  "threshold": 0.18250825407587676,
+  "threshold": 0.18250825407582585,
   "threshold_percentile": 95,
   "metrics": {
-    "train_bic": -279555.6698867337,
-    "val_bic": -61356.123336714,
-    "train_aic": -280202.5803239818,
-    "val_aic": -61888.0499152535
+    "train_bic": -279555.6698867349,
+    "val_bic": -61356.12333671466,
+    "train_aic": -280202.58032398304,
+    "val_aic": -61888.04991525416
   },
   "converged": true,
   "train_samples": 46260,
