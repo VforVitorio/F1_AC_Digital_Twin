@@ -1,0 +1,73 @@
+{
+  "input_file": "telemetry_2025-12-08_18-05-21_FIXED.csv",
+  "total_samples": 66125,
+  "split_ratios": [
+    0.7,
+    0.15,
+    0.15
+  ],
+  "seed": 42,
+  "features": {
+    "expert1_tire": [
+      "TireTemp_FL_Avg",
+      "TireTemp_FR_Avg",
+      "TireTemp_RL_Avg",
+      "TireTemp_RR_Avg",
+      "TireWear_FL",
+      "TireWear_FR",
+      "TireWear_RL",
+      "TireWear_RR",
+      "TirePressure_FL",
+      "TirePressure_FR",
+      "TirePressure_RL",
+      "TirePressure_RR",
+      "SlipRatio_FL",
+      "SlipRatio_FR",
+      "SlipRatio_RL",
+      "SlipRatio_RR",
+      "SlipAngle_FL",
+      "SlipAngle_FR",
+      "SlipAngle_RL",
+      "SlipAngle_RR"
+    ],
+    "expert2_dynamics": [
+      "AccG_Lateral",
+      "AccG_Vertical",
+      "AccG_Longitudinal",
+      "LocalVelocity_X",
+      "LocalVelocity_Y",
+      "LocalVelocity_Z",
+      "AngularVel_X",
+      "AngularVel_Y",
+      "AngularVel_Z",
+      "Heading",
+      "Pitch",
+      "Roll",
+      "TireLoad_FL",
+      "TireLoad_FR",
+      "TireLoad_RL",
+      "TireLoad_RR"
+    ],
+    "expert3_control": [
+      "Speed_kmh",
+      "RPM",
+      "Throttle",
+      "Brake",
+      "Steering",
+      "Gear"
+    ],
+    "expert4_power": [
+      "TurboBoost",
+      "KERS_Charge",
+      "KERS_CurrentKJ",
+      "DRS_Enabled"
+    ]
+  },
+  "feature_counts": {
+    "expert1_tire": 20,
+    "expert2_dynamics": 16,
+    "expert3_control": 6,
+    "expert4_power": 4,
+    "total": 46
+  }
+}

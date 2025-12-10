@@ -1,20 +1,5 @@
 apiVersion: 1
 datasources:
-  - name: InfluxDB-F1-Telemetry
-    type: influxdb
-    access: proxy
-    url: http://influxdb:8086
-    jsonData:
-      version: Flux
-      organization: f1-org
-      defaultBucket: f1-telemetry
-      tlsSkipVerify: true
-    secureJsonData:
-      token: f1-telemetry-token-super-secret
-    isDefault: true
-    editable: true
-    uid: influxdb-f1
-
   - name: InfluxDB-Anomalies
     type: influxdb
     access: proxy

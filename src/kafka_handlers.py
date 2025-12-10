@@ -89,6 +89,51 @@ def configure_consumer(bootstrap_servers, group_id, topic_name, client_id='f1-te
     return consumer
 
 
+def setup_anomaly_topic(bootstrap_servers, topic_name='f1-anomalies'):
+    """
+    Create Kafka topic for anomaly detection results with optimized configuration.
+
+    Configuration:
+    - 1 partition (ordered processing)
+    - Retention: 7 days
+    - Cleanup policy: delete
+    - Compression: lz4 (low latency)
+
+    Args:
+        bootstrap_servers: Kafka broker addresses
+        topic_name: Name of the anomaly topic (default: 'f1-anomalies')
+
+    Returns:
+        True if topic exists or was created successfully
+    """
+    print(f"🔧 Setting up anomaly topic '{topic_name}'...")
+
+    admin_client = AdminClient({'bootstrap.servers': bootstrap_servers})
+
+    try:
+        topic = NewTopic(
+            topic_name,
+            num_partitions=1,
+            replication_factor=1,
+            config={
+                'retention.ms': str(7 * 24 * 60 * 60 * 1000),  # 7 days
+                'cleanup.policy': 'delete',
+                'compression.type': 'lz4',
+                'max.message.bytes': '1048576'  # 1 MB
+            }
+        )
+        admin_client.create_topics([topic])
+        print(f"✅ Anomaly topic '{topic_name}' created successfully")
+        return True
+    except Exception as e:
+        if 'TopicExistsException' in str(e) or 'already exists' in str(e).lower():
+            print(f"ℹ️  Topic '{topic_name}' already exists")
+            return True
+        else:
+            print(f"⚠️  Error creating topic: {e}")
+            return False
+
+
 def delivery_callback(err, msg):
     """
     Callback for message delivery confirmation

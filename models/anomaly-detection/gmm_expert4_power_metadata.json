@@ -1,0 +1,29 @@
+{
+  "expert_name": "expert4_power",
+  "n_components": 5,
+  "n_features": 4,
+  "features": [
+    "TurboBoost",
+    "KERS_Charge",
+    "KERS_CurrentKJ",
+    "DRS_Enabled"
+  ],
+  "covariance_type": "full",
+  "threshold": 0.18250825407587676,
+  "threshold_percentile": 95,
+  "metrics": {
+    "train_bic": -279555.6698867337,
+    "val_bic": -61356.123336714,
+    "train_aic": -280202.5803239818,
+    "val_aic": -61888.0499152535
+  },
+  "converged": true,
+  "train_samples": 46260,
+  "val_samples": 9781,
+  "test_samples": 10084,
+  "anomaly_rates": {
+    "train": 5.0,
+    "val": 3.803292096922605,
+    "test": 6.703689012296708
+  }
+}

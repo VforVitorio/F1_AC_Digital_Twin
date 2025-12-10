@@ -1,0 +1,45 @@
+{
+  "expert_name": "expert1_tire",
+  "n_components": 5,
+  "n_features": 20,
+  "features": [
+    "TireTemp_FL_Avg",
+    "TireTemp_FR_Avg",
+    "TireTemp_RL_Avg",
+    "TireTemp_RR_Avg",
+    "TireWear_FL",
+    "TireWear_FR",
+    "TireWear_RL",
+    "TireWear_RR",
+    "TirePressure_FL",
+    "TirePressure_FR",
+    "TirePressure_RL",
+    "TirePressure_RR",
+    "SlipRatio_FL",
+    "SlipRatio_FR",
+    "SlipRatio_RL",
+    "SlipRatio_RR",
+    "SlipAngle_FL",
+    "SlipAngle_FR",
+    "SlipAngle_RL",
+    "SlipAngle_RR"
+  ],
+  "covariance_type": "full",
+  "threshold": -69.41603643763916,
+  "threshold_percentile": 95,
+  "metrics": {
+    "train_bic": -6938678.744313653,
+    "val_bic": -1465336.5063841597,
+    "train_aic": -6948767.050321549,
+    "val_aic": -1473631.6857305728
+  },
+  "converged": true,
+  "train_samples": 46260,
+  "val_samples": 9781,
+  "test_samples": 10084,
+  "anomaly_rates": {
+    "train": 5.0,
+    "val": 3.2000817912278907,
+    "test": 6.832606108687029
+  }
+}

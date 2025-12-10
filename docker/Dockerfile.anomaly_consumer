@@ -1,0 +1,29 @@
+# Dockerfile for Anomaly to InfluxDB Writer Service
+# Consumes anomaly detections from Kafka, writes to InfluxDB for Grafana
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies for confluent-kafka
+RUN apt-get update && apt-get install -y \
+    librdkafka-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY scripts/ ./scripts/
+COPY config.py .
+COPY .env .
+
+# Set Python path
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Run the anomaly to InfluxDB consumer
+CMD ["python", "scripts/streaming/kafka_anomaly_to_influxdb.py"]
