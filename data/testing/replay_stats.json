@@ -1,8 +1,8 @@
 {
   "total_samples": 1000,
-  "sent_samples": 1000,
+  "sent_samples": 841,
   "failed_samples": 0,
-  "start_time": "2025-12-10T11:52:27.643571",
-  "end_time": "2025-12-10T11:54:08.573763",
-  "duration_seconds": 100.93019199371338
+  "start_time": "2025-12-10T12:10:05.446089",
+  "end_time": "2025-12-10T12:11:30.353733",
+  "duration_seconds": 84.90764379501343
 }
