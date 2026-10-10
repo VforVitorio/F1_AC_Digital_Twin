@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.8.0][1.8.0] - 2026-10-10
+
+### Added
+
+- Added a four-expert GMM anomaly detector with a gating network, training scripts, saved artifacts, and Kafka inference.
+- Added a Kafka pipeline for live Assetto Corsa telemetry and CSV replay, with anomaly storage in InfluxDB and Grafana dashboards.
+- Added TCN behavioral-learning notebooks, lap-level data splits, and trained model artifacts.
+- Added a PySINDy-based telemetry analysis workflow for equation discovery.
+- Added the project paper at docs/F1_AC_Digital_Twin_Paper.pdf.
+
+### Changed
+
+- Rewrote the README to describe the current pipeline, setup, and project scope.
+- Excluded Jupyter notebooks from GitHub Linguist language percentages while keeping them tracked and visible in diffs.
+
+---
+
 ## [1.7.0][1.7.0] - 2025-09-27
 
 ### Added
@@ -437,7 +454,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Outdated dependencies**: Cleaned up non-AI training related model references (XGBoost, TCN, YOLOv8 in generic context)
 - **Incompatible roadmap items**: Removed phases not aligned with autonomous driving objectives
 
-[Unreleased]: https://github.com/VforVitorio/F1_AC_Digital_Twin/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/VforVitorio/F1_AC_Digital_Twin/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/compare/v1.7.0...v1.8.0
+[1.7.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.7.0
+[1.6.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.6.0
 [1.5.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.5.0
 [1.4.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.4.0
 [1.3.0]: https://github.com/VforVitorio/F1_AC_Digital_Twin/releases/tag/v1.3.0
